@@ -190,3 +190,101 @@ function alternar_foto_oculta(int $fotoId, int $imovelId): ?bool
     q('UPDATE fotos SET oculta = ? WHERE id = ?', [$nova, $fotoId]);
     return (bool)$nova;
 }
+
+
+/* ---------- Fotos enviadas antes de salvar um imóvel novo ----------
+ * Ficam em storage/fotos_temp/<token>/ (fora da pasta pública) até o imóvel ser salvo.
+ * Pastas esquecidas com mais de 2 dias são apagadas sozinhas.
+ */
+
+function token_fotos_temp_valido(string $token): bool
+{
+    return (bool)preg_match('/^[a-f0-9]{32}$/', $token);
+}
+
+function nome_foto_temp_valido(string $nome): bool
+{
+    return (bool)preg_match('/^\d{10,20}-[a-f0-9]{8}$/', $nome);
+}
+
+function pasta_fotos_temp(?string $token = null): string
+{
+    $base = APP_DIR . '/storage/fotos_temp';
+    return $token === null ? $base : $base . '/' . $token;
+}
+
+function limpar_fotos_temp_antigas(): void
+{
+    foreach (glob(pasta_fotos_temp() . '/*', GLOB_ONLYDIR) ?: [] as $dir) {
+        if (filemtime($dir) < time() - 2 * 86400) {
+            foreach (glob($dir . '/*') ?: [] as $f) @unlink($f);
+            @rmdir($dir);
+        }
+    }
+}
+
+function guardar_foto_temp(string $token, array $file): string
+{
+    if (!token_fotos_temp_valido($token)) {
+        throw new RuntimeException('Recarregue a página e tente de novo.');
+    }
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'])) {
+        throw new RuntimeException('Falha no envio da foto.');
+    }
+    if ((int)$file['size'] > FOTO_MAX_BYTES) {
+        throw new RuntimeException('Foto muito grande (máximo 15 MB).');
+    }
+    $info = @getimagesize($file['tmp_name']);
+    if (!$info || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP], true)) {
+        throw new RuntimeException('Formato não aceito. Envie JPG, PNG ou WEBP.');
+    }
+    if (random_int(1, 20) === 1) limpar_fotos_temp_antigas();
+    $dir = pasta_fotos_temp($token);
+    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        throw new RuntimeException('Não foi possível guardar a foto.');
+    }
+    if (count(glob($dir . '/*') ?: []) >= 80) {
+        throw new RuntimeException('Limite de 80 fotos antes de salvar. Salve o imóvel e envie o resto.');
+    }
+    $nome = sprintf('%d-%s', (int)(microtime(true) * 1000), bin2hex(random_bytes(4)));
+    if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $nome)) {
+        throw new RuntimeException('Não foi possível guardar a foto.');
+    }
+    return $nome;
+}
+
+function caminho_foto_temp(string $token, string $nome): ?string
+{
+    if (!token_fotos_temp_valido($token) || !nome_foto_temp_valido($nome)) return null;
+    $f = pasta_fotos_temp($token) . '/' . $nome;
+    return is_file($f) ? $f : null;
+}
+
+function excluir_foto_temp(string $token, string $nome): void
+{
+    if ($f = caminho_foto_temp($token, $nome)) @unlink($f);
+}
+
+/** Leva as fotos guardadas para o imóvel recém-criado, na ordem escolhida. @return array{0:int,1:int} [enviadas, falhas] */
+function anexar_fotos_temp(int $imovelId, string $token, array $nomes): array
+{
+    if (!token_fotos_temp_valido($token)) return [0, 0];
+    $ok = 0;
+    $falhas = 0;
+    foreach (array_unique(array_map('strval', $nomes)) as $nome) {
+        $f = caminho_foto_temp($token, $nome);
+        if (!$f) continue;
+        try {
+            $r = processar_imagem($imovelId, $f);
+            q('INSERT INTO fotos (imovel_id, arquivo, largura, altura, ordem) VALUES (?,?,?,?,?)',
+                [$imovelId, $r['nome'], $r['largura'], $r['altura'], proxima_ordem_foto($imovelId)]);
+            $ok++;
+        } catch (Throwable $e) {
+            $falhas++;
+        }
+    }
+    $dir = pasta_fotos_temp($token);
+    foreach (glob($dir . '/*') ?: [] as $arq) @unlink($arq);
+    @rmdir($dir);
+    return [$ok, $falhas];
+}

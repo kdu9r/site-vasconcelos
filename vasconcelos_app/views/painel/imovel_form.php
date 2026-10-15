@@ -1,5 +1,5 @@
 <?php
-/** @var ?array $imovel @var array $v @var array $erros @var array $fotos @var array $pendencias @var array $corretores @var array $bairros @var array $condominios */
+/** @var ?array $imovel @var array $v @var array $erros @var array $fotos @var array $pendencias @var array $corretores @var array $bairros @var array $condominios @var string $fotos_token @var array $fotos_temp */
 $neg = $v['negocio'] ?? array_values(array_filter([
     ($v['preco_venda'] ?? null) !== null ? 'venda' : null,
     ($v['preco_locacao'] ?? null) !== null ? 'locacao' : null,
@@ -304,7 +304,24 @@ $condItens = isset($v['cond_itens']) ? (array)$v['cond_itens'] : ($condAtual['it
       </label>
       <div class="p-progresso p-oculto" data-progresso><div></div><span></span></div>
     <?php else: ?>
-      <p class="p-nota p-vazio">As fotos são liberadas assim que você salvar. Se o imóvel for de condomínio, as fotos dele já aparecem aqui junto para você arrumar a ordem.</p>
+      <p class="p-nota">Pode enviar as fotos agora: elas entram no imóvel quando você salvar, na ordem abaixo. A primeira é a capa. Depois de salvar, dá para arrastar e mudar a ordem, e as fotos do condomínio aparecem junto.</p>
+      <input type="hidden" name="fotos_token" value="<?= e($fotos_token) ?>">
+      <div class="p-fotos" data-fotos-novas data-token="<?= e($fotos_token) ?>">
+        <?php foreach ($fotos_temp as $n): if (!caminho_foto_temp($fotos_token, $n)) continue; ?>
+          <div class="p-foto" data-nome="<?= e($n) ?>">
+            <img src="/painel/fotos-temp/ver?t=<?= e($fotos_token) ?>&amp;n=<?= e($n) ?>" alt="">
+            <span class="p-foto__tags"><span class="p-foto__capa">Capa</span></span>
+            <input type="hidden" name="fotos_temp[]" value="<?= e($n) ?>">
+            <button type="button" class="p-foto__excluir" data-excluir-temp aria-label="Tirar foto">✕</button>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      <label class="p-upload" data-upload-novas>
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple data-input-fotos-novas>
+        <strong>Adicionar fotos</strong>
+        <span>Toque para escolher ou arraste as fotos aqui</span>
+      </label>
+      <div class="p-progresso p-oculto" data-progresso-novas><div></div><span></span></div>
     <?php endif; ?>
   </section>
 

@@ -115,6 +115,25 @@ function rotear_painel(string $path, string $method): void
         case $path === '/painel/importar':
             painel_importar(require_admin(), $post);
             return;
+        case $post && $path === '/painel/fotos-temp':
+            try {
+                $nome = guardar_foto_temp((string)($_POST['token'] ?? ''), $_FILES['foto'] ?? []);
+                json_response(['ok' => true, 'nome' => $nome]);
+            } catch (Throwable $e) {
+                json_response(['erro' => $e instanceof RuntimeException ? $e->getMessage() : 'Erro ao guardar a foto.'], 422);
+            }
+        case $post && $path === '/painel/fotos-temp/excluir':
+            excluir_foto_temp((string)($_POST['token'] ?? ''), (string)($_POST['nome'] ?? ''));
+            json_response(['ok' => true]);
+        case $path === '/painel/fotos-temp/ver':
+            $arq = caminho_foto_temp((string)($_GET['t'] ?? ''), (string)($_GET['n'] ?? ''));
+            $info = $arq ? @getimagesize($arq) : false;
+            if (!$arq || !$info) abort(404);
+            header('Content-Type: ' . $info['mime']);
+            header('Cache-Control: private, max-age=600');
+            header('X-Content-Type-Options: nosniff');
+            readfile($arq);
+            return;
         case $path === '/painel/configuracoes':
             require_admin();
             redirect('/painel/configuracoes/compartilhar');
@@ -318,10 +337,17 @@ function painel_form_imovel(array $user, ?int $id, bool $post): void
         if (!$erros) {
             $dados['condominio_id'] = aplicar_condominio_do_imovel($condAcao, $condDados);
             $novoId = salvar_imovel($dados, $id);
+            [$fotosOk, $fotosFalha] = $id ? [0, 0] : anexar_fotos_temp($novoId, (string)($_POST['fotos_token'] ?? ''), (array)($_POST['fotos_temp'] ?? []));
             sincronizar_fotos_condominio($novoId);
             log_atividade($id ? 'editou imóvel' : 'criou imóvel', 'Cód. ' . $dados['codigo']);
-            flash('ok', $id ? 'Alterações salvas.' : 'Imóvel criado. Agora adicione as fotos.');
-            redirect('/painel/imovel/' . $novoId . ($id ? '' : '#fotos'));
+            if ($id) {
+                flash('ok', 'Alterações salvas.');
+            } elseif ($fotosOk) {
+                flash($fotosFalha ? 'erro' : 'ok', 'Imóvel criado com ' . $fotosOk . ($fotosOk === 1 ? ' foto' : ' fotos') . '.' . ($fotosFalha ? ' ' . $fotosFalha . ' não puderam ser usadas; envie de novo.' : ''));
+            } else {
+                flash('ok', 'Imóvel criado. Agora adicione as fotos.');
+            }
+            redirect('/painel/imovel/' . $novoId . ($id || $fotosOk ? '' : '#fotos'));
         }
         $valores = array_merge($valores, $_POST, ['caracteristicas' => $dados['caracteristicas'] ?? null, '_digitado' => true]);
         $valores['negocio'] = (array)($_POST['negocio'] ?? []);
@@ -339,6 +365,8 @@ function painel_form_imovel(array $user, ?int $id, bool $post): void
         'titulo_pagina' => $im ? 'Cód. ' . $im['codigo'] : 'Novo imóvel',
         'imovel' => $im,
         'v' => $valores,
+        'fotos_token' => token_fotos_temp_valido((string)($_POST['fotos_token'] ?? '')) ? (string)$_POST['fotos_token'] : bin2hex(random_bytes(16)),
+        'fotos_temp' => array_values(array_filter((array)($_POST['fotos_temp'] ?? []), fn($n) => is_string($n) && nome_foto_temp_valido($n))),
         'erros' => $erros,
         'fotos' => $fotos,
         'pendencias' => $im ? pendencias_portal($im, count(fotos_completas($im))) : [],

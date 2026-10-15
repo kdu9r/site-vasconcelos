@@ -198,6 +198,101 @@
     }
   }
 
+  /* ---------- Fotos de imóvel novo (antes de salvar) ---------- */
+  var novas = qs('[data-fotos-novas]');
+  if (novas) {
+    var tokenNovas = novas.getAttribute('data-token');
+    var progNovas = qs('[data-progresso-novas]');
+    var formNovo = novas.closest('form');
+    var enviando = 0;
+    var marcarCapaNovas = function () {
+      qsa('.p-foto', novas).forEach(function (el, i) { el.classList.toggle('p-foto--capa', i === 0); });
+    };
+    var reduzirNova = function (arquivo) {
+      if (!window.createImageBitmap || !arquivo.type.match(/^image\//)) return Promise.resolve(arquivo);
+      return createImageBitmap(arquivo, { imageOrientation: 'from-image' }).then(function (bmp) {
+        var escala = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
+        if (escala === 1 && arquivo.size < 3 * 1024 * 1024) return arquivo;
+        var c = document.createElement('canvas');
+        c.width = Math.round(bmp.width * escala);
+        c.height = Math.round(bmp.height * escala);
+        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+        return new Promise(function (ok) {
+          c.toBlob(function (b) { ok(b ? new File([b], 'foto.jpg', { type: 'image/jpeg' }) : arquivo); }, 'image/jpeg', 0.9);
+        });
+      }).catch(function () { return arquivo; });
+    };
+    var montarNova = function (nome, blob) {
+      var d = document.createElement('div');
+      d.className = 'p-foto';
+      d.setAttribute('data-nome', nome);
+      var img = document.createElement('img');
+      img.alt = '';
+      img.src = URL.createObjectURL(blob);
+      var tags = document.createElement('span');
+      tags.className = 'p-foto__tags';
+      tags.innerHTML = '<span class="p-foto__capa">Capa</span>';
+      var inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = 'fotos_temp[]'; inp.value = nome;
+      var x = document.createElement('button');
+      x.type = 'button'; x.className = 'p-foto__excluir'; x.setAttribute('data-excluir-temp', ''); x.setAttribute('aria-label', 'Tirar foto'); x.textContent = '✕';
+      d.append(img, tags, inp, x);
+      return d;
+    };
+    var enviarNovas = function (arquivos) {
+      arquivos = Array.prototype.slice.call(arquivos);
+      if (!arquivos.length) return;
+      var total = arquivos.length, feitos = 0, erros = [];
+      enviando++;
+      progNovas.classList.remove('p-oculto');
+      var barra = progNovas.querySelector('div');
+      var texto = progNovas.querySelector('span');
+      var passo = function () {
+        barra.style.setProperty('--p', Math.round(feitos / total * 100) + '%');
+        texto.textContent = feitos < total ? 'Enviando ' + (feitos + 1) + ' de ' + total + '…' : 'Pronto! As fotos entram quando você salvar.' + (erros.length ? ' Erros: ' + erros.join('; ') : '');
+        if (feitos >= total) { enviando--; marcarCapaNovas(); return; }
+        var arq = arquivos[feitos];
+        var pronto;
+        reduzirNova(arq).then(function (p) {
+          pronto = p;
+          var fd = new FormData();
+          fd.append('token', tokenNovas);
+          fd.append('foto', p, arq.name || 'foto.jpg');
+          return post('/painel/fotos-temp', fd);
+        }).then(function (r) {
+          if (r.ok) novas.appendChild(montarNova(r.nome, pronto));
+          else erros.push((arq.name || 'foto') + ': ' + (r.erro || 'falhou'));
+        }).catch(function () {
+          erros.push((arq.name || 'foto') + ': sem conexão');
+        }).then(function () { feitos++; passo(); });
+      };
+      passo();
+    };
+    novas.addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-excluir-temp]');
+      if (!b) return;
+      var foto = b.closest('.p-foto');
+      post('/painel/fotos-temp/excluir', { token: tokenNovas, nome: foto.getAttribute('data-nome') });
+      foto.remove();
+      marcarCapaNovas();
+    });
+    var inputNovas = qs('[data-input-fotos-novas]');
+    var zonaNovas = qs('[data-upload-novas]');
+    if (inputNovas) inputNovas.addEventListener('change', function () { enviarNovas(inputNovas.files); inputNovas.value = ''; });
+    if (zonaNovas) {
+      ['dragenter', 'dragover'].forEach(function (t) { zonaNovas.addEventListener(t, function (ev) { ev.preventDefault(); zonaNovas.classList.add('sobre'); }); });
+      ['dragleave', 'drop'].forEach(function (t) { zonaNovas.addEventListener(t, function () { zonaNovas.classList.remove('sobre'); }); });
+      zonaNovas.addEventListener('drop', function (ev) { ev.preventDefault(); enviarNovas(ev.dataTransfer.files); });
+    }
+    if (formNovo) formNovo.addEventListener('submit', function (ev) {
+      if (enviando > 0) {
+        ev.preventDefault();
+        window.alert('Espere as fotos terminarem de enviar e clique em Salvar de novo.');
+      }
+    });
+    marcarCapaNovas();
+  }
+
   /* ---------- Botões 0–5 / 6+ ---------- */
   qsa('[data-chips]').forEach(function (grupo) {
     var mais = qs('.p-chips__mais', grupo);
