@@ -208,12 +208,21 @@ function painel_filtros_imoveis(array $in): array
         $where[] = 'i.status = ?';
         $p[] = $status;
     }
-    return [$busca, $status, $where ? 'WHERE ' . implode(' AND ', $where) : '', $p];
+    $tipo = isset(tipos_imovel()[$in['tipo'] ?? '']) ? (string)$in['tipo'] : '';
+    if ($tipo) {
+        $where[] = 'i.tipo = ?';
+        $p[] = $tipo;
+    }
+    $transacao = in_array($in['transacao'] ?? '', ['venda', 'locacao'], true) ? (string)$in['transacao'] : '';
+    if ($transacao) {
+        $where[] = $transacao === 'venda' ? 'i.preco_venda IS NOT NULL' : 'i.preco_locacao IS NOT NULL';
+    }
+    return [$busca, $status, $where ? 'WHERE ' . implode(' AND ', $where) : '', $p, $tipo, $transacao];
 }
 
 function painel_inicio(array $user): void
 {
-    [$busca, $status, $sqlWhere, $p] = painel_filtros_imoveis($_GET);
+    [$busca, $status, $sqlWhere, $p, $tipo, $transacao] = painel_filtros_imoveis($_GET);
     $porPagina = in_array((int)($_GET['por'] ?? 30), [30, 50, 100], true) ? (int)($_GET['por'] ?? 30) : 30;
     $total = (int)q("SELECT COUNT(*) FROM imoveis i $sqlWhere", $p)->fetchColumn();
     $paginas = max(1, (int)ceil($total / $porPagina));
@@ -236,6 +245,9 @@ function painel_inicio(array $user): void
         'imoveis' => anexar_capas($imoveis),
         'busca' => $busca,
         'status' => $status,
+        'tipo' => $tipo,
+        'transacao' => $transacao,
+        'tipos' => array_intersect_key(tipos_imovel(), array_flip(q('SELECT DISTINCT tipo FROM imoveis')->fetchAll(PDO::FETCH_COLUMN))),
         'stats' => $stats,
         'portal_ids' => array_flip($portalIds),
         'total' => $total,
@@ -252,6 +264,7 @@ function painel_status_em_massa(): void
     $rot = ['ativo' => 'No ar', 'pausado' => 'Pausado', 'vendido' => 'Vendido', 'alugado' => 'Alugado'];
     $voltar = '/painel?' . http_build_query(array_filter([
         'q' => $_POST['q'] ?? '', 'status' => $_POST['status'] ?? '',
+        'tipo' => $_POST['tipo'] ?? '', 'transacao' => $_POST['transacao'] ?? '',
         'por' => $_POST['por'] ?? '', 'pagina' => $_POST['pagina'] ?? '',
     ]));
     if (!isset($rot[$novo])) {

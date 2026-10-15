@@ -201,9 +201,12 @@ button, input, select { font: inherit; color: inherit; }
 .imovel__preco-movel p { margin: 0; font-size: 15px; color: var(--cinza); font-weight: 600; }
 .imovel__preco-movel small { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
 .imovel__preco-movel strong { font-family: var(--fonte-titulo); font-size: 30px; color: var(--tinta); letter-spacing: -0.02em; margin-right: 4px; }
-.specs { list-style: none; margin: 0; padding: 18px 0; border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 16px; }
-.specs li { display: flex; flex-direction: column; gap: 2px; }
-.specs strong { font-family: var(--fonte-titulo); font-size: 22px; }
+.specs { list-style: none; margin: 0; padding: 20px 0; border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
+@media (min-width: 700px) { .specs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.specs li { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.specs__icone { flex: none; color: var(--teal); }
+.specs__texto { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.specs strong { font-family: var(--fonte-titulo); font-size: 20px; line-height: 1.2; }
 .specs span { font-size: 13px; color: var(--cinza); font-weight: 600; }
 .bloco { display: flex; flex-direction: column; gap: 12px; }
 .bloco h2 { font-size: 21px; font-weight: 600; }
@@ -368,3 +371,9 @@ img.corretor__avatar { object-fit: cover; flex: none; }
 @media (min-width: 700px) { .carrossel__item { flex-basis: calc((100% - 20px) / 2); } }
 @media (min-width: 1000px) { .carrossel__item { flex-basis: calc((100% - 40px) / 3); } }
 @media (prefers-reduced-motion: reduce) { .carrossel__trilho { scroll-behavior: auto; } }
+
+/* Botão de compartilhar (ao lado de "Sobre o imóvel") */
+.bloco__cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.bloco__cabeca h2 { margin: 0; }
+.botao-compartilhar { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--linha-forte); border-radius: 999px; background: #fff; color: var(--tinta); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.botao-compartilhar:hover { border-color: var(--tinta); }

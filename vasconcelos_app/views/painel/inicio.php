@@ -1,5 +1,5 @@
 <?php
-/** @var array $imoveis @var array $stats @var string $busca @var string $status @var array $portal_ids @var int $total @var int $pagina @var int $paginas @var int $por_pagina */
+/** @var array $imoveis @var array $stats @var string $busca @var string $status @var array $portal_ids @var int $total @var int $pagina @var int $paginas @var int $por_pagina @var string $tipo @var string $transacao @var array $tipos */
 $rotStatus = ['ativo' => 'No ar', 'pausado' => 'Pausado', 'vendido' => 'Vendido', 'alugado' => 'Alugado'];
 ?>
 <div class="p-cabeca">
@@ -20,10 +20,20 @@ $rotStatus = ['ativo' => 'No ar', 'pausado' => 'Pausado', 'vendido' => 'Vendido'
     <option value="">Todas as situações</option>
     <?php foreach ($rotStatus as $k => $r): ?><option value="<?= $k ?>" <?= $status === $k ? 'selected' : '' ?>><?= $r ?></option><?php endforeach; ?>
   </select>
+  <select name="transacao" aria-label="Venda ou locação">
+    <option value="">Venda e locação</option>
+    <option value="venda" <?= $transacao === 'venda' ? 'selected' : '' ?>>Venda</option>
+    <option value="locacao" <?= $transacao === 'locacao' ? 'selected' : '' ?>>Locação</option>
+  </select>
+  <select name="tipo" aria-label="Tipo de imóvel">
+    <option value="">Todos os tipos</option>
+    <?php foreach ($tipos as $k => $t): ?><option value="<?= e($k) ?>" <?= $tipo === $k ? 'selected' : '' ?>><?= e($t['rotulo']) ?></option><?php endforeach; ?>
+  </select>
   <select name="por" aria-label="Imóveis por página" class="p-filtro__por">
     <?php foreach ([30, 50, 100] as $n): ?><option value="<?= $n ?>" <?= $por_pagina === $n ? 'selected' : '' ?>><?= $n ?> por página</option><?php endforeach; ?>
   </select>
   <button class="p-botao" type="submit">Filtrar</button>
+  <?php if ($busca !== '' || $status || $tipo || $transacao): ?><a class="p-botao p-botao--fantasma" href="/painel<?= $por_pagina !== 30 ? '?por=' . $por_pagina : '' ?>">Limpar</a><?php endif; ?>
 </form>
 
 <?php if (!$imoveis): ?>
@@ -36,6 +46,8 @@ $rotStatus = ['ativo' => 'No ar', 'pausado' => 'Pausado', 'vendido' => 'Vendido'
   <?= csrf_field() ?>
   <input type="hidden" name="q" value="<?= e($busca) ?>">
   <input type="hidden" name="status" value="<?= e($status) ?>">
+  <input type="hidden" name="tipo" value="<?= e($tipo) ?>">
+  <input type="hidden" name="transacao" value="<?= e($transacao) ?>">
   <input type="hidden" name="por" value="<?= $por_pagina ?>">
   <input type="hidden" name="pagina" value="<?= $pagina ?>">
   <div class="p-massa__barra">
@@ -83,7 +95,7 @@ $rotStatus = ['ativo' => 'No ar', 'pausado' => 'Pausado', 'vendido' => 'Vendido'
 </ul>
 </form>
 <?php if ($paginas > 1):
-  $link = fn(int $n) => '/painel?' . http_build_query(array_filter(['q' => $busca, 'status' => $status, 'por' => $por_pagina !== 30 ? $por_pagina : null, 'pagina' => $n > 1 ? $n : null]));
+  $link = fn(int $n) => '/painel?' . http_build_query(array_filter(['q' => $busca, 'status' => $status, 'tipo' => $tipo, 'transacao' => $transacao, 'por' => $por_pagina !== 30 ? $por_pagina : null, 'pagina' => $n > 1 ? $n : null]));
 ?>
 <nav class="p-paginas" aria-label="Páginas">
   <?php if ($pagina > 1): ?><a class="p-botao p-botao--pequeno" href="<?= e($link($pagina - 1)) ?>">← Anterior</a><?php endif; ?>

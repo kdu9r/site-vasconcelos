@@ -6,12 +6,22 @@ $caracteristicas = caracteristicas_lista($im);
 $terreno = eh_terreno($im);
 
 $specs = [];
-if ($im['area_util'] !== null) $specs[] = [num($im['area_util']) . ' m²', 'Área útil'];
-if ($im['area_total'] !== null && ($terreno || $im['area_util'] === null)) $specs[] = [num($im['area_total']) . ' m²', $terreno ? 'Área do terreno' : 'Área total'];
-if ($im['quartos']) $specs[] = [(string)$im['quartos'], $im['quartos'] > 1 ? 'Dormitórios' : 'Dormitório'];
-if ($im['suites']) $specs[] = [(string)$im['suites'], $im['suites'] > 1 ? 'Suítes' : 'Suíte'];
-if ($im['banheiros']) $specs[] = [(string)$im['banheiros'], $im['banheiros'] > 1 ? 'Banheiros' : 'Banheiro'];
-if ($im['vagas']) $specs[] = [(string)$im['vagas'], $im['vagas'] > 1 ? 'Vagas' : 'Vaga'];
+if ($im['quartos']) $specs[] = ['quartos', (string)$im['quartos'], $im['quartos'] > 1 ? 'Dormitórios' : 'Dormitório'];
+if ($im['suites']) $specs[] = ['suites', (string)$im['suites'], $im['suites'] > 1 ? 'Suítes' : 'Suíte'];
+if ($im['banheiros']) $specs[] = ['banheiros', (string)$im['banheiros'], $im['banheiros'] > 1 ? 'Banheiros' : 'Banheiro'];
+if ($im['vagas']) $specs[] = ['vagas', (string)$im['vagas'], $im['vagas'] > 1 ? 'Vagas de garagem' : 'Vaga de garagem'];
+if ($im['area_util'] !== null && (float)$im['area_util'] > 0) $specs[] = ['area_util', num($im['area_util']) . ' m²', $terreno ? 'Área útil' : 'Área construída'];
+if ($im['area_total'] !== null && (float)$im['area_total'] > 0) $specs[] = ['area_total', num($im['area_total']) . ' m²', $terreno ? 'Área do terreno' : 'Área total'];
+
+// Ícones de traço (24x24), cor herdada do texto
+$iconesSpec = [
+    'quartos' => '<path d="M3 18v-6.5A1.5 1.5 0 0 1 4.5 10h15a1.5 1.5 0 0 1 1.5 1.5V18"/><path d="M3 15h18"/><path d="M3 18v2M21 18v2"/><path d="M5 10V6.5A1.5 1.5 0 0 1 6.5 5h11A1.5 1.5 0 0 1 19 6.5V10"/><path d="M8 10V8.5h3V10M13 10V8.5h3V10"/>',
+    'suites' => '<path d="M4 20V7a3 3 0 0 1 6 0"/><path d="M7.5 9.5h5"/><path d="M14 12.5v.01M17 12.5v.01M20 12.5v.01M15.5 15.5v.01M18.5 15.5v.01M17 18.5v.01"/><path d="M3 20h8"/>',
+    'banheiros' => '<path d="M5 4h7v6H5z"/><path d="M4 10h16v1a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6z"/><path d="M8 17l-1 3h10l-1-3"/>',
+    'vagas' => '<path d="M5 17h14v-4.5l-1.8-4.4A1.8 1.8 0 0 0 15.5 7h-7a1.8 1.8 0 0 0-1.7 1.1L5 12.5z"/><path d="M5 12.5h14"/><circle cx="8" cy="14.8" r=".6"/><circle cx="16" cy="14.8" r=".6"/><path d="M6.5 17v2M17.5 17v2"/>',
+    'area_util' => '<path d="M3 21V10l9-7 9 7v11z"/><path d="M8 21v-6h8v6"/><path d="M8 12h8"/>',
+    'area_total' => '<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 9h2M4 14h2M9 4v2M14 4v2M18 20v-2M20 15h-2"/><circle cx="4" cy="4" r="1.5"/><circle cx="20" cy="20" r="1.5"/>',
+];
 
 $valores = [];
 if ($im['preco_venda'] !== null) $valores[] = ['Venda', money($im['preco_venda']), '', (float)$im['preco_venda']];
@@ -113,7 +123,10 @@ $mensagem = whatsapp_mensagem($im);
     <?php if ($specs): ?>
     <ul class="specs">
       <?php foreach ($specs as $s): ?>
-        <li><strong><?= e($s[0]) ?></strong><span><?= e($s[1]) ?></span></li>
+        <li>
+          <svg class="specs__icone" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $iconesSpec[$s[0]] ?></svg>
+          <span class="specs__texto"><strong><?= e($s[1]) ?></strong><span><?= e($s[2]) ?></span></span>
+        </li>
       <?php endforeach; ?>
     </ul>
     <?php endif; ?>
@@ -132,7 +145,13 @@ $mensagem = whatsapp_mensagem($im);
 
     <?php if (trim((string)$im['descricao']) !== ''): ?>
     <section class="bloco">
-      <h2>Sobre o imóvel</h2>
+      <div class="bloco__cabeca">
+        <h2>Sobre o imóvel</h2>
+        <button type="button" class="botao-compartilhar" data-compartilhar data-titulo="<?= e($im['titulo']) ?>" data-url="<?= e(url(url_imovel($im))) ?>">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+          <span data-compartilhar-rotulo>Compartilhar</span>
+        </button>
+      </div>
       <div class="texto"><?= nl2br(e($im['descricao'])) ?></div>
     </section>
     <?php endif; ?>

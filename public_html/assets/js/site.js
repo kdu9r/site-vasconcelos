@@ -35,6 +35,21 @@
     reiniciar();
   });
 
+  // Compartilhar imóvel: menu do celular quando existe; senão copia o link
+  document.querySelectorAll('[data-compartilhar]').forEach(function (b) {
+    var rotulo = b.querySelector('[data-compartilhar-rotulo]');
+    b.addEventListener('click', function () {
+      var dados = { title: b.getAttribute('data-titulo') || document.title, url: b.getAttribute('data-url') || location.href };
+      if (navigator.share) { navigator.share(dados).catch(function () {}); return; }
+      var avisar = function (t) { if (!rotulo) return; rotulo.textContent = t; setTimeout(function () { rotulo.textContent = 'Compartilhar'; }, 2500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(dados.url).then(function () { avisar('Link copiado!'); }, function () { window.prompt('Copie o link:', dados.url); });
+      } else {
+        window.prompt('Copie o link:', dados.url);
+      }
+    });
+  });
+
   // Galeria de fotos
   var galeria = document.querySelector('[data-galeria]');
   if (galeria) {

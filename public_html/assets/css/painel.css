@@ -234,4 +234,6 @@ code { background: #E8ECF4; padding: 2px 6px; border-radius: 6px; font-size: 14p
 .p-massa__info { margin: 0 0 10px; color: var(--cinza); font-size: 13px; }
 .p-item__marca, .p-massa__todos input { width: 22px; height: 22px; accent-color: var(--teal); cursor: pointer; flex: none; }
 .p-paginas { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 18px 0; font-weight: 600; }
-.p-filtro .p-filtro__por { flex: 0 1 170px; }
+.p-filtro select { flex: 1 1 160px; }
+.p-filtro input[type="search"] { flex: 2 1 240px; }
+.p-filtro .p-filtro__por { flex: 0 1 150px; }
