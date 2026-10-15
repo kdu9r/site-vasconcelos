@@ -38,7 +38,7 @@ $corretores = (array)config('contato.corretores', []);
 <?= integracoes_config_json($whatsImovel) ?>
 <script src="<?= e(asset('js/site.js')) ?>" nonce="<?= e(csp_nonce()) ?>" defer></script>
 </head>
-<body>
+<body<?= !empty($pagina_home) ? ' class="home"' : '' ?>>
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 
 <header class="topo">

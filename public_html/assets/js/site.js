@@ -246,3 +246,20 @@
   ajustar();
   if (mq.addEventListener) mq.addEventListener('change', ajustar);
 })();
+
+// Home: menu transparente sobre a foto; ganha fundo e acompanha a página depois dela
+(function () {
+  var topo = document.querySelector('.topo');
+  var hero = document.querySelector('[data-hero]');
+  if (!topo || !hero || !document.body.classList.contains('home')) return;
+  var pendente = false;
+  function ajustar() {
+    pendente = false;
+    var limite = hero.offsetHeight - topo.offsetHeight;
+    topo.classList.toggle('topo--foto', window.scrollY < limite);
+  }
+  function agendar() { if (!pendente) { pendente = true; requestAnimationFrame(ajustar); } }
+  window.addEventListener('scroll', agendar, { passive: true });
+  window.addEventListener('resize', agendar);
+  ajustar();
+})();
