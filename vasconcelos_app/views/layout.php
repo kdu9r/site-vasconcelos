@@ -74,7 +74,7 @@ $corretores = (array)config('contato.corretores', []);
 <section class="contato" id="contato" aria-labelledby="contato-titulo">
   <div class="contato__in">
     <div class="contato__texto">
-      <h2 id="contato-titulo">Fale direto com o corretor</h2>
+      <h2 id="contato-titulo">Fale direto com os corretores</h2>
       <p>Sem formulário, sem espera. Escolha quem vai te atender e tire suas dúvidas pelo WhatsApp.</p>
     </div>
     <div class="contato__lista">

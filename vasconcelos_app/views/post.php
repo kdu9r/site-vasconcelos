@@ -31,7 +31,7 @@ $json_ld = [
     <?= render_texto((string)$p['conteudo']) ?>
   </div>
   <aside class="post__cta">
-    <p><strong>Procurando imóvel em Bertioga?</strong> Fale direto com o corretor e diga o que você precisa.</p>
+    <p><strong>Procurando imóvel em Bertioga?</strong> Fale direto com os corretores e diga o que você precisa.</p>
     <a class="botao botao--whats" href="<?= e(whatsapp_link(null, 'blog')) ?>" rel="nofollow"><?php partial('icone_whats', ['tam' => 18]); ?> Conversar no WhatsApp</a>
   </aside>
 </article>
