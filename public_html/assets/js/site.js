@@ -246,13 +246,3 @@
   ajustar();
   if (mq.addEventListener) mq.addEventListener('change', ajustar);
 })();
-
-// Busca da home: "Mais filtros" aberto no computador, recolhido no celular
-(function () {
-  var mais = document.querySelector('[data-busca-mais]');
-  if (!mais || !window.matchMedia) return;
-  var mq = window.matchMedia('(min-width: 900px)');
-  function ajustar() { mais.open = mq.matches; }
-  ajustar();
-  if (mq.addEventListener) mq.addEventListener('change', ajustar);
-})();

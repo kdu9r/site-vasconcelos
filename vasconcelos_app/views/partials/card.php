@@ -11,13 +11,14 @@ $ico = 'width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentCo
     <div class="card__foto">
       <img src="<?= e(foto_url($capa, 'p')) ?>" alt="" loading="lazy" decoding="async" width="640" height="480">
       <span class="selo selo--claro"><?= e(tipo_rotulo($im['tipo'])) ?></span>
+      <span class="selo selo--escuro">Cód. <?= e($im['codigo']) ?></span>
     </div>
     <div class="card__corpo">
+      <h3 class="card__titulo"><?= e($im['titulo']) ?></h3>
       <div class="card__linha">
-        <h3 class="card__titulo"><?= e($im['titulo']) ?></h3>
+        <p class="card__local"><?= e($im['bairro']) ?>, <?= e($im['cidade']) ?></p>
         <p class="card__preco"><?= e($preco['valor']) ?><?php if ($preco['sufixo']): ?> <small><?= e($preco['sufixo']) ?></small><?php endif; ?></p>
       </div>
-      <p class="card__local"><?= e($im['bairro']) ?>, <?= e($im['cidade']) ?> <span class="card__cod">Cód. <?= e($im['codigo']) ?></span></p>
       <?php if ($preco['nota']): ?><p class="card__nota"><?= e($preco['nota']) ?></p><?php endif; ?>
       <ul class="card__itens">
         <?php if (!empty($im['quartos'])): ?>
