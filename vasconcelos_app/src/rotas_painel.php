@@ -115,6 +115,12 @@ function rotear_painel(string $path, string $method): void
         case $path === '/painel/importar':
             painel_importar(require_admin(), $post);
             return;
+        case $path === '/painel/configuracoes':
+            require_admin();
+            redirect('/painel/configuracoes/compartilhar');
+        case $path === '/painel/configuracoes/compartilhar':
+            painel_config_compartilhar(require_admin(), $post);
+            return;
         default:
             abort(404);
     }
@@ -715,5 +721,33 @@ function painel_integracoes(array $admin, bool $post): void
         'campos' => integracoes_campos(),
         'valores' => $valores,
         'erros' => $erros,
+    ]);
+}
+
+
+/* ---------- Configurações ---------- */
+
+function painel_config_compartilhar(array $admin, bool $post): void
+{
+    $corretores = array_values(array_filter((array)config('contato.corretores', []), fn($c) => !empty($c['whatsapp'])));
+    $validos = array_merge(['aleatorio'], array_column($corretores, 'whatsapp'));
+    if ($post) {
+        $escolha = (string)($_POST['whatsapp_destino'] ?? '');
+        if (!in_array($escolha, $validos, true)) {
+            flash('erro', 'Escolha uma das opções.');
+            redirect('/painel/configuracoes/compartilhar');
+        }
+        // "aleatorio" é o padrão: não precisa ficar salvo
+        salvar_config_site(['whatsapp_destino' => $escolha === 'aleatorio' ? null : $escolha]);
+        $nome = $escolha === 'aleatorio' ? 'aleatório' : (array_column($corretores, 'nome', 'whatsapp')[$escolha] ?? $escolha);
+        log_atividade('alterou destino do WhatsApp', $nome);
+        flash('ok', 'Salvo. Os botões de WhatsApp do site agora vão para: ' . $nome . '.');
+        redirect('/painel/configuracoes/compartilhar');
+    }
+    $atual = (string)(config_site('whatsapp_destino') ?? 'aleatorio');
+    painel_view('config_compartilhar', [
+        'titulo_pagina' => 'Configurações',
+        'corretores' => $corretores,
+        'atual' => in_array($atual, $validos, true) ? $atual : 'aleatorio',
     ]);
 }

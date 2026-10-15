@@ -237,3 +237,10 @@ code { background: #E8ECF4; padding: 2px 6px; border-radius: 6px; font-size: 14p
 .p-filtro select { flex: 1 1 160px; }
 .p-filtro input[type="search"] { flex: 2 1 240px; }
 .p-filtro .p-filtro__por { flex: 0 1 150px; }
+
+/* Configurações: sub-abas */
+.p-subnav { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--linha); margin: 4px 0 16px; }
+.p-subnav a { padding: 10px 14px; text-decoration: none; color: var(--cinza); font-weight: 700; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.p-subnav a[aria-current="page"] { color: var(--teal); border-bottom-color: var(--teal); }
+.p-opcoes--coluna { flex-direction: column; }
+.p-opcoes--coluna label small { margin-left: 4px; font-weight: 500; }

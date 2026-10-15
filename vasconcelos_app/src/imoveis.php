@@ -144,8 +144,26 @@ function whatsapp_link(?array $im, string $origem, ?string $numero = null): stri
 function whatsapp_destino(?string $numero, string $mensagem): string
 {
     $permitidos = array_column((array)config('contato.corretores', []), 'whatsapp');
-    $num = in_array($numero, $permitidos, true) ? $numero : (string)config('contato.whatsapp_principal');
+    $num = in_array($numero, $permitidos, true) ? $numero : whatsapp_padrao();
     return 'https://wa.me/' . $num . '?text=' . rawurlencode($mensagem);
+}
+
+/**
+ * Para quem vão os botões de WhatsApp que não escolhem um corretor
+ * (Quero saber mais, Agendar visita, botão flutuante etc.).
+ * Painel → Configurações → Compartilhar. Padrão: aleatório entre os corretores.
+ */
+function whatsapp_padrao(): string
+{
+    $permitidos = array_values(array_filter(array_column((array)config('contato.corretores', []), 'whatsapp')));
+    $escolha = (string)(config_site('whatsapp_destino') ?? 'aleatorio');
+    if (in_array($escolha, $permitidos, true)) {
+        return $escolha;
+    }
+    if ($permitidos) {
+        return $permitidos[random_int(0, count($permitidos) - 1)];
+    }
+    return (string)config('contato.whatsapp_principal');
 }
 
 function formata_telefone(string $numero): string
