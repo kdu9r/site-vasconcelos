@@ -1,0 +1,16 @@
+# Configuração com senhas: fica só no servidor
+vasconcelos_app/config.php
+
+# Arquivos gerados no servidor
+vasconcelos_app/storage/*
+!vasconcelos_app/storage/.gitkeep
+!vasconcelos_app/storage/.htaccess
+public_html/uploads/imoveis/*
+public_html/uploads/blog/*
+public_html/uploads/condominios/*
+!public_html/uploads/*/.gitkeep
+
+# Diversos
+*.zip
+.DS_Store
+node_modules/

@@ -1,0 +1,69 @@
+# Publica o site na HostGator por FTP a cada alteração na branch main.
+# Só envia o que mudou. Nunca mexe em: config.php, fotos enviadas pelo painel (uploads) e storage.
+#
+# Configuração (GitHub → Settings → Secrets and variables → Actions):
+#   Secrets:   FTP_SERVER   (ex.: ftp.seudominio.com.br)
+#              FTP_USERNAME (usuário FTP do cPanel)
+#              FTP_PASSWORD
+#   Variable:  DEPLOY_DIR   pasta no servidor, relativa ao FTP, terminando em "/"
+#              ex.: "demo-vasconcelos/" (subdomínio de teste) ou "./" (site definitivo)
+# Enquanto DEPLOY_DIR não existir, o envio fica desligado (só a checagem roda).
+
+name: Publicar na HostGator
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  checar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conferir sintaxe do PHP
+        run: find . -name "*.php" -print0 | xargs -0 -n1 php -l > /dev/null
+
+  publicar:
+    needs: checar
+    if: ${{ vars.DEPLOY_DIR != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enviar código do site (vasconcelos_app)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./vasconcelos_app/
+          server-dir: ${{ vars.DEPLOY_DIR }}vasconcelos_app/
+          state-name: .estado-envio-app.json
+          exclude: |
+            **/.git*
+            **/.git*/**
+            config.php
+            storage/**
+
+      - name: Enviar pasta pública (public_html)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./public_html/
+          server-dir: ${{ vars.DEPLOY_DIR }}public_html/
+          state-name: .estado-envio.json
+          exclude: |
+            **/.git*
+            **/.git*/**
+            uploads/imoveis/**
+            uploads/blog/**
+            uploads/condominios/**
