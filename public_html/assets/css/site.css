@@ -133,18 +133,18 @@ button, input, select { font: inherit; color: inherit; }
 .card__foto { position: relative; aspect-ratio: 4 / 3; background: #DDE3EF; }
 .card__foto img { width: 100%; height: 100%; object-fit: cover; }
 .selo { display: inline-block; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 999px; }
-.card__foto .selo { position: absolute; top: 12px; }
-.card__foto .selo--claro { left: 12px; }
-.card__foto .selo--escuro { right: 12px; }
+.card__foto .selo { position: absolute; top: 10px; font-size: 11px; padding: 4px 9px; }
+.card__foto .selo--claro { left: 10px; }
+.card__foto .selo--escuro { right: 10px; }
 .selo--claro { background: #fff; color: var(--tinta); }
 .selo--escuro { background: rgba(15,26,51,.85); color: #fff; }
 .selo--teal { background: #E4E9F5; color: var(--teal); }
 .selo--cinza { background: #F1F3F8; color: var(--tinta); }
 .card__corpo { padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 6px; }
-.card__preco { margin: 0; font-family: var(--fonte-titulo); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.card__preco { margin: 2px 0 0; font-family: var(--fonte); font-size: 17px; font-weight: 700; color: var(--teal); }
 .card__preco small { font-family: var(--fonte); font-size: 14px; font-weight: 600; color: var(--cinza); }
 .card__nota { margin: 0; font-size: 13px; font-weight: 700; color: var(--teal); }
-.card__titulo { font-family: var(--fonte); font-size: 16px; font-weight: 700; letter-spacing: 0; line-height: 1.35; }
+.card__titulo { font-family: var(--fonte-titulo); font-size: 19px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3; }
 .card__local { margin: 0; font-size: 14px; color: var(--cinza); font-weight: 600; }
 .card__specs { margin: 0; font-size: 14px; }
 .vazio { text-align: center; padding: 32px 16px; color: var(--cinza); display: flex; flex-direction: column; align-items: center; gap: 8px; }

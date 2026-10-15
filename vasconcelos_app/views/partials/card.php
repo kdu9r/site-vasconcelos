@@ -12,9 +12,9 @@ $capa = $im['capa'] ?? null;
       <span class="selo selo--escuro">Cód. <?= e($im['codigo']) ?></span>
     </div>
     <div class="card__corpo">
+      <h3 class="card__titulo"><?= e($im['titulo']) ?></h3>
       <p class="card__preco"><?= e($preco['valor']) ?><?php if ($preco['sufixo']): ?> <small><?= e($preco['sufixo']) ?></small><?php endif; ?></p>
       <?php if ($preco['nota']): ?><p class="card__nota"><?= e($preco['nota']) ?></p><?php endif; ?>
-      <h3 class="card__titulo"><?= e($im['titulo']) ?></h3>
       <p class="card__local"><?= e($im['bairro']) ?>, <?= e($im['cidade']) ?></p>
       <?php if ($specs = specs_curtas($im)): ?><p class="card__specs"><?= e($specs) ?></p><?php endif; ?>
     </div>
