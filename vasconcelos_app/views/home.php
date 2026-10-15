@@ -2,14 +2,19 @@
 /** @var array $destaques @var array $locacao @var array $bairros @var array $tipos */
 $heroFoto = is_file(rtrim((string)config('public_dir'), '/') . '/assets/img/hero.jpg') ? asset('img/hero.jpg') : asset('img/hero-placeholder.svg');
 ?>
-<section class="hero">
-  <img class="hero__fundo" src="<?= e($heroFoto) ?>" alt="" fetchpriority="high" width="1600" height="900">
-  <div class="hero__in">
-    <p class="hero__local">Bertioga · SP</p>
-    <h1 class="hero__titulo">Seu imóvel na praia</h1>
+<section class="hero" aria-labelledby="hero-titulo">
+  <div class="hero__painel">
+    <img class="hero__fundo" src="<?= e($heroFoto) ?>" alt="" fetchpriority="high" width="1600" height="900">
+    <div class="hero__texto">
+      <p class="hero__local">Bertioga, SP</p>
+      <h1 id="hero-titulo" class="hero__titulo">Seu imóvel na praia</h1>
+      <p class="hero__sub">Casas e apartamentos para comprar ou alugar, com atendimento direto dos corretores.</p>
+    </div>
+  </div>
+  <div class="hero__busca">
     <?php partial('busca', ['bairros' => $bairros, 'tipos' => $tipos]); ?>
     <form class="busca-codigo" action="/busca" method="get">
-      <label for="codigo">Já tem o código?</label>
+      <label for="codigo">Já tem o código do imóvel?</label>
       <input id="codigo" name="codigo" inputmode="numeric" placeholder="Ex.: 384" maxlength="20" autocomplete="off">
       <button type="submit">Ver imóvel</button>
     </form>

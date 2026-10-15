@@ -13,8 +13,10 @@ $qsBase = array_filter([
   <div class="secao secao--sem-fundo">
     <nav class="trilha" aria-label="Você está em"><a href="/">Início</a> / <span><?= e($titulo) ?></span></nav>
     <h1><?= e($titulo) ?></h1>
-    <p class="lista-total"><?= $resultado['total'] ?> <?= $resultado['total'] === 1 ? 'imóvel encontrado' : 'imóveis encontrados' ?></p>
+    <p class="lista-total"><?= $resultado['total'] ?> <?= $resultado['total'] === 1 ? 'imóvel encontrado' : 'imóveis encontrados' ?> em Bertioga</p>
 
+    <details class="filtros-caixa" data-filtros open>
+    <summary class="filtros-caixa__resumo">Filtrar imóveis</summary>
     <form class="filtros" action="/imoveis" method="get">
       <label class="filtro">
         <span>Negócio</span>
@@ -65,6 +67,7 @@ $qsBase = array_filter([
       </label>
       <button class="botao botao--escuro" type="submit">Filtrar</button>
     </form>
+    </details>
   </div>
 </div>
 
