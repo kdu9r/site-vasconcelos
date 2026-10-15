@@ -379,3 +379,5 @@ img.corretor__avatar { object-fit: cover; flex: none; }
 .botao-compartilhar__aviso { position: absolute; right: 0; top: calc(100% + 6px); white-space: nowrap; background: var(--tinta); color: #fff; font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .15s; }
 .botao-compartilhar__aviso.mostrar { opacity: 1; }
 .botao-compartilhar:hover { border-color: var(--tinta); }
+.selos { align-items: center; }
+.selos__acao { margin-left: auto; }

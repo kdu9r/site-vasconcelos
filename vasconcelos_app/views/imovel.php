@@ -23,6 +23,15 @@ $iconesSpec = [
     'area_total' => '<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 9h2M4 14h2M9 4v2M14 4v2M18 20v-2M20 15h-2"/><circle cx="4" cy="4" r="1.5"/><circle cx="20" cy="20" r="1.5"/>',
 ];
 
+// Botão de compartilhar: ao lado de "Sobre o imóvel"; sem descrição, vai para o topo
+ob_start(); ?>
+<button type="button" class="botao-compartilhar" aria-label="Compartilhar imóvel" title="Compartilhar" data-compartilhar data-titulo="<?= e($im['titulo']) ?>" data-url="<?= e(url(url_imovel($im))) ?>">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+          <span class="botao-compartilhar__aviso" data-compartilhar-rotulo role="status"></span>
+        </button>
+<?php $botaoCompartilhar = ob_get_clean();
+$temDescricao = trim((string)$im['descricao']) !== '';
+
 $valores = [];
 if ($im['preco_venda'] !== null) $valores[] = ['Venda', money($im['preco_venda']), '', (float)$im['preco_venda']];
 if ($im['preco_locacao'] !== null) $valores[] = ['Locação', money($im['preco_locacao']), '/mês', (float)$im['preco_locacao']];
@@ -109,6 +118,7 @@ $mensagem = whatsapp_mensagem($im);
         <span class="selo selo--teal"><?= e(transacao_rotulo($im)) ?></span>
         <span class="selo selo--cinza">Cód. <?= e($im['codigo']) ?></span>
         <span class="selo selo--cinza"><?= e(tipo_rotulo($im['tipo'])) ?></span>
+        <?php if (!$temDescricao): ?><span class="selos__acao"><?= $botaoCompartilhar ?></span><?php endif; ?>
       </div>
       <h1><?= e($im['titulo']) ?></h1>
       <p class="imovel__endereco"><?= e(endereco_publico($im)) ?></p>
@@ -147,10 +157,7 @@ $mensagem = whatsapp_mensagem($im);
     <section class="bloco">
       <div class="bloco__cabeca">
         <h2>Sobre o imóvel</h2>
-        <button type="button" class="botao-compartilhar" aria-label="Compartilhar imóvel" title="Compartilhar" data-compartilhar data-titulo="<?= e($im['titulo']) ?>" data-url="<?= e(url(url_imovel($im))) ?>">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
-          <span class="botao-compartilhar__aviso" data-compartilhar-rotulo role="status"></span>
-        </button>
+        <?= $botaoCompartilhar ?>
       </div>
       <div class="texto"><?= nl2br(e($im['descricao'])) ?></div>
     </section>

@@ -50,6 +50,16 @@
     });
   });
 
+  // Busca: não manda campos vazios (link limpo: /imoveis?transacao=venda em vez de ...&bairro=&tipo=)
+  document.querySelectorAll('form[role="search"]').forEach(function (f) {
+    f.addEventListener('submit', function () {
+      Array.prototype.forEach.call(f.elements, function (el) {
+        if (el.name && !el.disabled && (el.type !== 'radio' || el.checked) && el.value === '') el.disabled = true;
+      });
+      setTimeout(function () { Array.prototype.forEach.call(f.elements, function (el) { el.disabled = false; }); }, 0);
+    });
+  });
+
   // Galeria de fotos
   var galeria = document.querySelector('[data-galeria]');
   if (galeria) {
@@ -131,19 +141,6 @@
       iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
       iframe.allowFullscreen = true;
       box.replaceChildren(iframe);
-    });
-  });
-
-  // Compartilhar
-  document.querySelectorAll('[data-compartilhar]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var url = b.getAttribute('data-url');
-      var titulo = b.getAttribute('data-titulo');
-      if (navigator.share) {
-        navigator.share({ title: titulo, url: url }).catch(function () {});
-      } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(function () { b.textContent = 'Link copiado!'; });
-      }
     });
   });
 

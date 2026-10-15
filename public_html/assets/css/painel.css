@@ -247,3 +247,7 @@ code { background: #E8ECF4; padding: 2px 6px; border-radius: 6px; font-size: 14p
 .p-opcoes--coluna { flex-direction: column; }
 .p-opcoes--coluna label small { margin-left: 4px; font-weight: 500; }
 .p-subtitulo { margin: 0 0 4px; font-size: 20px; }
+
+/* Textos longos e botões não passam da tela no celular */
+.p-cartao code { overflow-wrap: anywhere; }
+.p-cartao .p-botao { max-width: 100%; white-space: normal; text-align: center; }
