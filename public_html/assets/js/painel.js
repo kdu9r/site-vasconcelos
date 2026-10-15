@@ -222,6 +222,25 @@
         });
       }).catch(function () { return arquivo; });
     };
+    // Arrastar (computador) ou setas ‹ › (celular) para mudar a ordem antes de salvar
+    var prepararNova = function (el) {
+      el.draggable = true;
+      if (!el.querySelector('.p-foto__mover')) {
+        el.insertAdjacentHTML('beforeend', '<span class="p-foto__mover"><button type="button" data-mover="-1" aria-label="Mover para a esquerda">‹</button><button type="button" data-mover="1" aria-label="Mover para a direita">›</button></span>');
+      }
+      el.addEventListener('dragstart', function (ev) { el.classList.add('arrastando'); ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', ''); });
+      el.addEventListener('dragend', function () { el.classList.remove('arrastando'); marcarCapaNovas(); });
+    };
+    novas.addEventListener('dragover', function (ev) {
+      var arrastando = qs('.arrastando', novas);
+      if (!arrastando) return;
+      ev.preventDefault();
+      var alvo = ev.target.closest('.p-foto');
+      if (!alvo || alvo === arrastando) return;
+      var r = alvo.getBoundingClientRect();
+      novas.insertBefore(arrastando, (ev.clientX - r.left) > r.width / 2 ? alvo.nextSibling : alvo);
+    });
+    novas.addEventListener('drop', function (ev) { if (qs('.arrastando', novas)) ev.preventDefault(); });
     var montarNova = function (nome, blob) {
       var d = document.createElement('div');
       d.className = 'p-foto';
@@ -237,6 +256,7 @@
       var x = document.createElement('button');
       x.type = 'button'; x.className = 'p-foto__excluir'; x.setAttribute('data-excluir-temp', ''); x.setAttribute('aria-label', 'Tirar foto'); x.textContent = '✕';
       d.append(img, tags, inp, x);
+      prepararNova(d);
       return d;
     };
     var enviarNovas = function (arquivos) {
@@ -269,6 +289,14 @@
       passo();
     };
     novas.addEventListener('click', function (ev) {
+      var mover = ev.target.closest('[data-mover]');
+      if (mover) {
+        var el = mover.closest('.p-foto');
+        if (mover.getAttribute('data-mover') === '-1' && el.previousElementSibling) novas.insertBefore(el, el.previousElementSibling);
+        if (mover.getAttribute('data-mover') === '1' && el.nextElementSibling) novas.insertBefore(el.nextElementSibling, el);
+        marcarCapaNovas();
+        return;
+      }
       var b = ev.target.closest('[data-excluir-temp]');
       if (!b) return;
       var foto = b.closest('.p-foto');
@@ -290,6 +318,7 @@
         window.alert('Espere as fotos terminarem de enviar e clique em Salvar de novo.');
       }
     });
+    qsa('.p-foto', novas).forEach(prepararNova);
     marcarCapaNovas();
   }
 

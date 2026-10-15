@@ -304,7 +304,7 @@ $condItens = isset($v['cond_itens']) ? (array)$v['cond_itens'] : ($condAtual['it
       </label>
       <div class="p-progresso p-oculto" data-progresso><div></div><span></span></div>
     <?php else: ?>
-      <p class="p-nota">Pode enviar as fotos agora: elas entram no imóvel quando você salvar, na ordem abaixo. A primeira é a capa. Depois de salvar, dá para arrastar e mudar a ordem, e as fotos do condomínio aparecem junto.</p>
+      <p class="p-nota">Pode enviar as fotos agora: elas entram no imóvel quando você salvar. Arraste (ou use as setas ‹ ›) para mudar a ordem. A primeira é a capa. As fotos do condomínio aparecem junto depois de salvar.</p>
       <input type="hidden" name="fotos_token" value="<?= e($fotos_token) ?>">
       <div class="p-fotos" data-fotos-novas data-token="<?= e($fotos_token) ?>">
         <?php foreach ($fotos_temp as $n): if (!caminho_foto_temp($fotos_token, $n)) continue; ?>
