@@ -137,7 +137,15 @@ function start_session(): void
     ]);
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
-    ini_set('session.gc_maxlifetime', '28800');
+    // Sessões numa pasta própria: na hospedagem compartilhada a pasta padrão é limpa
+    // pelo servidor a cada ~24 min, o que derrubava o login antes da hora.
+    $dir = APP_DIR . '/storage/sessoes';
+    if (is_dir($dir) || @mkdir($dir, 0700, true)) {
+        session_save_path($dir);
+    }
+    ini_set('session.gc_maxlifetime', '604800');
+    ini_set('session.gc_probability', '1');
+    ini_set('session.gc_divisor', '200');
     session_start();
 }
 

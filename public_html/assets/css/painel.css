@@ -28,7 +28,9 @@ code { background: #E8ECF4; padding: 2px 6px; border-radius: 6px; font-size: 14p
 .p-nav a[aria-current="page"] { background: #E4E9F5; color: var(--teal); }
 .p-sair { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--cinza); }
 .p-sair button { border: 1px solid var(--linha-forte); background: #fff; border-radius: 10px; min-height: 40px; padding: 0 12px; cursor: pointer; font-weight: 600; }
-@media (min-width: 800px) { .p-nav { order: 0; width: auto; } }
+@media (min-width: 980px) { .p-nav { order: 0; width: auto; flex: 1 1 0; min-width: 0; } .p-topo__in { flex-wrap: nowrap; gap: 10px 16px; } .p-nav a { padding: 10px 10px; } }
+@media (min-width: 980px) { .p-sair span { display: none; } }
+@media (min-width: 980px) and (max-width: 1150px) { .p-marca span { display: none; } .p-nav a { padding: 10px 8px; } }
 
 .p-main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 120px; display: flex; flex-direction: column; gap: 16px; }
 .p-cabeca { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
@@ -244,3 +246,4 @@ code { background: #E8ECF4; padding: 2px 6px; border-radius: 6px; font-size: 14p
 .p-subnav a[aria-current="page"] { color: var(--teal); border-bottom-color: var(--teal); }
 .p-opcoes--coluna { flex-direction: column; }
 .p-opcoes--coluna label small { margin-left: 4px; font-weight: 500; }
+.p-subtitulo { margin: 0 0 4px; font-size: 20px; }

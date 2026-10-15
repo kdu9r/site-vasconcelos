@@ -1,5 +1,6 @@
 <?php /** @var array $estado @var bool $token_configurado */ ?>
-<div class="p-cabeca"><h1>Migração da Code49</h1></div>
+<?php require __DIR__ . '/config_subnav.php'; ?>
+<h2 class="p-subtitulo">Migração da Code49</h2>
 
 <section class="p-cartao">
   <?php if (!$token_configurado): ?>

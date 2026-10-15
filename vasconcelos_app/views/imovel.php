@@ -203,7 +203,6 @@ $mensagem = whatsapp_mensagem($im);
       </a>
       <a class="botao botao--contorno" href="<?= e(whatsapp_link($im, 'visita')) ?>" rel="nofollow">Agendar uma visita</a>
       <p class="cartao-preco__msg"><span>Abre o WhatsApp com a mensagem:</span> “<?= e($mensagem) ?>”</p>
-      <button class="botao-texto" type="button" data-compartilhar data-url="<?= e($urlCompleta) ?>" data-titulo="<?= e($im['titulo']) ?>">Compartilhar este imóvel</button>
     </div>
   </aside>
 </div>

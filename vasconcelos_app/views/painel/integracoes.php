@@ -11,7 +11,8 @@ $campo = function (string $k) use ($campos, $valores, $erros) {
 <?php };
 $ativo = fn(string $k) => !empty($valores[$k]) ? '<span class="p-tag p-tag--ativo">Ativo</span>' : '<span class="p-tag">Desligado</span>';
 ?>
-<div class="p-cabeca"><h1>Integrações</h1></div>
+<?php require __DIR__ . '/config_subnav.php'; ?>
+<h2 class="p-subtitulo">Integrações</h2>
 <p class="p-nota">Cole só o código (ID) de cada ferramenta. O site coloca os scripts sozinho, nas páginas públicas, e nunca no painel. Deixe em branco o que não usar. Visitas de quem está logado no painel não entram nas estatísticas.</p>
 <?php if ($erros): ?><div class="p-aviso p-aviso--erro" role="alert">Confira os campos marcados.</div><?php endif; ?>
 

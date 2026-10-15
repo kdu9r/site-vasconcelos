@@ -26,16 +26,14 @@ $ativo = fn(string $p) => ($p === '/painel' ? $path === '/painel' || str_starts_
       <a href="/painel/conta"<?= $ativo('/painel/conta') ?>>Minha conta</a>
       <?php if ($usuario['papel'] === 'admin'): ?>
         <a href="/painel/usuarios"<?= $ativo('/painel/usuarios') ?>>Acessos</a>
-        <a href="/painel/integracoes"<?= $ativo('/painel/integracoes') ?>>Integrações</a>
-        <a href="/painel/importar"<?= $ativo('/painel/importar') ?>>Migração</a>
-        <a href="/painel/configuracoes"<?= $ativo('/painel/configuracoes') ?>>Configurações</a>
+        <a href="/painel/configuracoes"<?= ($ativo('/painel/configuracoes') ?: $ativo('/painel/integracoes') ?: $ativo('/painel/importar')) ?>>Configurações</a>
       <?php endif; ?>
       <a href="/" target="_blank" rel="noopener">Ver site ↗</a>
     </nav>
     <form method="post" action="/painel/sair" class="p-sair">
       <?= csrf_field() ?>
       <span><?= e($usuario['nome']) ?></span>
-      <button type="submit">Sair</button>
+      <button type="submit" title="Sair (<?= e($usuario['nome']) ?>)">Sair</button>
     </form>
   </div>
 </header>

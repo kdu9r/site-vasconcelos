@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 const LOGIN_MAX_FALHAS_EMAIL = 5;     // por e-mail em 15 min
 const LOGIN_MAX_FALHAS_IP = 10;       // por IP em 15 min
-const SESSAO_INATIVIDADE = 7200;      // 2 h sem uso → sai
-const SESSAO_MAXIMA = 43200;          // 12 h no máximo
+const SESSAO_INATIVIDADE = 86400;     // 24 h sem uso → sai
+const SESSAO_MAXIMA = 604800;         // 7 dias no máximo (ou até fechar o navegador)
 const SENHA_MINIMA = 10;
 
 function password_algo(): string|int

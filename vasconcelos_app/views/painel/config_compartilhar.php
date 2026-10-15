@@ -1,9 +1,5 @@
 <?php /** @var array $corretores @var string $atual */ ?>
-<div class="p-cabeca"><h1>Configurações</h1></div>
-
-<nav class="p-subnav" aria-label="Configurações">
-  <a href="/painel/configuracoes/compartilhar" aria-current="page">Compartilhar</a>
-</nav>
+<?php require __DIR__ . '/config_subnav.php'; ?>
 
 <form method="post" action="/painel/configuracoes/compartilhar" class="p-pilha">
   <?= csrf_field() ?>
