@@ -28,7 +28,7 @@
     if (ant) ant.addEventListener('click', function () { voltar(); reiniciar(); });
     var reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var timer = null, pausado = false;
-    function reiniciar() { clearInterval(timer); if (!reduzir) timer = setInterval(function () { if (!pausado && !document.hidden) avancar(); }, 5000); }
+    function reiniciar() { clearInterval(timer); if (!reduzir) timer = setInterval(function () { if (!pausado && !document.hidden) avancar(); }, 4000); }
     ['mouseenter', 'focusin', 'touchstart'].forEach(function (e) { c.addEventListener(e, function () { pausado = true; }, { passive: true }); });
     ['mouseleave', 'focusout'].forEach(function (e) { c.addEventListener(e, function () { pausado = false; }); });
     c.addEventListener('touchend', function () { setTimeout(function () { pausado = false; }, 4000); }, { passive: true });

@@ -480,4 +480,27 @@
       qr.innerHTML = q.createSvgTag({ cellSize: 5, margin: 4, scalable: true });
     }
   });
+  // Lista de imóveis: marcar vários e mudar a situação de uma vez
+  qsa('[data-massa]').forEach(function (form) {
+    var todos = qs('[data-marcar-todos]', form);
+    var conta = qs('[data-massa-conta]', form);
+    var aplicar = qs('[data-massa-aplicar]', form);
+    var marcas = qsa('[data-marca]', form);
+    var atualizar = function () {
+      var n = marcas.filter(function (m) { return m.checked; }).length;
+      conta.textContent = n ? n + (n === 1 ? ' marcado' : ' marcados') : 'Nenhum marcado';
+      aplicar.disabled = !n;
+      if (todos) { todos.checked = n === marcas.length; todos.indeterminate = n > 0 && n < marcas.length; }
+    };
+    if (todos) todos.addEventListener('change', function () { marcas.forEach(function (m) { m.checked = todos.checked; }); atualizar(); });
+    marcas.forEach(function (m) { m.addEventListener('change', atualizar); });
+    form.addEventListener('submit', function (ev) {
+      var sel = qs('select[name="novo_status"]', form);
+      var botao = ev.submitter;
+      var rotulo = sel.options[sel.selectedIndex].text;
+      if (!sel.value) { ev.preventDefault(); sel.focus(); return; }
+      if (botao && botao.value === '1' && !confirm('Mudar TODOS os ' + botao.getAttribute('data-massa-tudo') + ' imóveis deste filtro para "' + rotulo + '"?')) ev.preventDefault();
+    });
+    atualizar();
+  });
 })();

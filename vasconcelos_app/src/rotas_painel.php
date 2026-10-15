@@ -51,6 +51,9 @@ function rotear_painel(string $path, string $method): void
         case $post && (bool)preg_match('~^/painel/imovel/(\d+)/fotos/(\d+)/excluir$~', $path, $m):
             painel_excluir_foto((int)$m[1], (int)$m[2]);
             return;
+        case $post && $path === '/painel/imoveis/status':
+            painel_status_em_massa();
+            return;
         case $post && (bool)preg_match('~^/painel/imovel/(\d+)/status$~', $path, $m):
             painel_status((int)$m[1]);
             return;
@@ -190,10 +193,11 @@ function painel_primeiro_acesso(bool $post): void
 
 /* ---------- Lista ---------- */
 
-function painel_inicio(array $user): void
+/** Filtros da lista de imóveis (busca e situação), usados na lista e na ação em massa. */
+function painel_filtros_imoveis(array $in): array
 {
-    $busca = trim((string)($_GET['q'] ?? ''));
-    $status = in_array($_GET['status'] ?? '', ['ativo', 'pausado', 'vendido', 'alugado'], true) ? $_GET['status'] : '';
+    $busca = trim((string)($in['q'] ?? ''));
+    $status = in_array($in['status'] ?? '', ['ativo', 'pausado', 'vendido', 'alugado'], true) ? (string)$in['status'] : '';
     $where = [];
     $p = [];
     if ($busca !== '') {
@@ -204,11 +208,22 @@ function painel_inicio(array $user): void
         $where[] = 'i.status = ?';
         $p[] = $status;
     }
-    $sqlWhere = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+    return [$busca, $status, $where ? 'WHERE ' . implode(' AND ', $where) : '', $p];
+}
+
+function painel_inicio(array $user): void
+{
+    [$busca, $status, $sqlWhere, $p] = painel_filtros_imoveis($_GET);
+    $porPagina = in_array((int)($_GET['por'] ?? 30), [30, 50, 100], true) ? (int)($_GET['por'] ?? 30) : 30;
+    $total = (int)q("SELECT COUNT(*) FROM imoveis i $sqlWhere", $p)->fetchColumn();
+    $paginas = max(1, (int)ceil($total / $porPagina));
+    $pagina = min($paginas, max(1, (int)($_GET['pagina'] ?? 1)));
+    $offset = ($pagina - 1) * $porPagina;
+    // Ordem padrão: código decrescente (códigos numéricos ordenados como número)
     $imoveis = q("SELECT " . IMOVEL_COLUNAS_LISTA . ", i.destaque_portal, i.publicar_portais,
             (SELECT COUNT(*) FROM fotos f2 WHERE f2.imovel_id = i.id AND f2.oculta = 0) AS qtd_fotos,
             (SELECT COUNT(*) FROM cliques_whatsapp c WHERE c.imovel_id = i.id AND c.criado_em > NOW() - INTERVAL 30 DAY) AS cliques30
-        FROM imoveis i $sqlWhere ORDER BY i.atualizado_em DESC LIMIT 300", $p)->fetchAll();
+        FROM imoveis i $sqlWhere ORDER BY LENGTH(i.codigo) DESC, i.codigo DESC LIMIT $porPagina OFFSET $offset", $p)->fetchAll();
     $portalIds = array_map('intval', array_column(imoveis_para_portal(), 'id'));
     $stats = [
         'ativos' => (int)q("SELECT COUNT(*) FROM imoveis WHERE status = 'ativo'")->fetchColumn(),
@@ -223,7 +238,42 @@ function painel_inicio(array $user): void
         'status' => $status,
         'stats' => $stats,
         'portal_ids' => array_flip($portalIds),
+        'total' => $total,
+        'pagina' => $pagina,
+        'paginas' => $paginas,
+        'por_pagina' => $porPagina,
     ]);
+}
+
+/** Muda a situação de vários imóveis de uma vez: os marcados ou todos os do filtro. */
+function painel_status_em_massa(): void
+{
+    $novo = (string)($_POST['novo_status'] ?? '');
+    $rot = ['ativo' => 'No ar', 'pausado' => 'Pausado', 'vendido' => 'Vendido', 'alugado' => 'Alugado'];
+    $voltar = '/painel?' . http_build_query(array_filter([
+        'q' => $_POST['q'] ?? '', 'status' => $_POST['status'] ?? '',
+        'por' => $_POST['por'] ?? '', 'pagina' => $_POST['pagina'] ?? '',
+    ]));
+    if (!isset($rot[$novo])) {
+        flash('erro', 'Escolha a nova situação.');
+        redirect($voltar);
+    }
+    if (($_POST['todos'] ?? '') === '1') {
+        [, , $sqlWhere, $p] = painel_filtros_imoveis($_POST);
+        $n = q("UPDATE imoveis i SET i.status = ? $sqlWhere", [$novo, ...$p])->rowCount();
+        $detalhe = 'todos do filtro';
+    } else {
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['ids'] ?? [])))));
+        if (!$ids) {
+            flash('erro', 'Marque pelo menos um imóvel.');
+            redirect($voltar);
+        }
+        $n = q('UPDATE imoveis SET status = ? WHERE id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')', [$novo, ...$ids])->rowCount();
+        $detalhe = count($ids) . ' marcados';
+    }
+    log_atividade('mudou status em massa', "$detalhe → $novo ($n alterados)");
+    flash('ok', $n . ($n === 1 ? ' imóvel mudou' : ' imóveis mudaram') . ' para "' . $rot[$novo] . '".');
+    redirect($voltar);
 }
 
 /* ---------- Formulário ---------- */

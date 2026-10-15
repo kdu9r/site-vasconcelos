@@ -225,3 +225,13 @@ code { background: #E8ECF4; padding: 2px 6px; border-radius: 6px; font-size: 14p
 .p-preenchido input, .p-preenchido select, .p-preenchido textarea, input.p-preenchido, select.p-preenchido, textarea.p-preenchido { background: #FFF7E3 !important; border-color: var(--ouro) !important; }
 .p-chips.p-preenchido legend, .p-itens label.p-preenchido span { box-shadow: 0 0 0 2px var(--ouro); }
 .p-chips.p-preenchido legend { box-shadow: none; color: #8A5A00; }
+
+/* Lista de imóveis: ações em massa e páginas */
+.p-massa__barra { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--linha); border-radius: 14px; padding: 10px; margin: 14px 0 6px; }
+.p-massa__barra select { min-height: 44px; border: 1px solid var(--linha-forte); border-radius: 10px; padding: 0 10px; background: #fff; font-size: 15px; }
+.p-massa__todos { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; min-height: 44px; cursor: pointer; }
+.p-massa__conta { color: var(--cinza); font-size: 14px; font-weight: 600; margin-right: auto; }
+.p-massa__info { margin: 0 0 10px; color: var(--cinza); font-size: 13px; }
+.p-item__marca, .p-massa__todos input { width: 22px; height: 22px; accent-color: var(--teal); cursor: pointer; flex: none; }
+.p-paginas { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 18px 0; font-weight: 600; }
+.p-filtro .p-filtro__por { flex: 0 1 170px; }
