@@ -375,5 +375,7 @@ img.corretor__avatar { object-fit: cover; flex: none; }
 /* Botão de compartilhar (ao lado de "Sobre o imóvel") */
 .bloco__cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .bloco__cabeca h2 { margin: 0; }
-.botao-compartilhar { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--linha-forte); border-radius: 999px; background: #fff; color: var(--tinta); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.botao-compartilhar { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--linha-forte); border-radius: 999px; background: #fff; color: var(--tinta); cursor: pointer; }
+.botao-compartilhar__aviso { position: absolute; right: 0; top: calc(100% + 6px); white-space: nowrap; background: var(--tinta); color: #fff; font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.botao-compartilhar__aviso.mostrar { opacity: 1; }
 .botao-compartilhar:hover { border-color: var(--tinta); }

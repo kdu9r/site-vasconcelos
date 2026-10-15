@@ -147,9 +147,9 @@ $mensagem = whatsapp_mensagem($im);
     <section class="bloco">
       <div class="bloco__cabeca">
         <h2>Sobre o imóvel</h2>
-        <button type="button" class="botao-compartilhar" data-compartilhar data-titulo="<?= e($im['titulo']) ?>" data-url="<?= e(url(url_imovel($im))) ?>">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
-          <span data-compartilhar-rotulo>Compartilhar</span>
+        <button type="button" class="botao-compartilhar" aria-label="Compartilhar imóvel" title="Compartilhar" data-compartilhar data-titulo="<?= e($im['titulo']) ?>" data-url="<?= e(url(url_imovel($im))) ?>">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+          <span class="botao-compartilhar__aviso" data-compartilhar-rotulo role="status"></span>
         </button>
       </div>
       <div class="texto"><?= nl2br(e($im['descricao'])) ?></div>
