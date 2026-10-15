@@ -102,7 +102,7 @@ function pagina_home(): void
         'locacao' => $locacao['itens'],
         'bairros' => bairros_com_contagem(),
         'tipos' => tipos_em_uso(),
-        'posts' => posts_publicados(3),
+        'posts' => posts_publicados(12),
         'pagina_home' => true,
     ]);
 }

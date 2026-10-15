@@ -68,11 +68,18 @@ $heroFoto = is_file(rtrim((string)config('public_dir'), '/') . '/assets/img/hero
       <p class="sobretitulo">Blog</p>
       <h2 id="blog-titulo">Morar e investir em Bertioga</h2>
     </div>
-    <a class="link-forte" href="/blog">Ver todos os textos</a>
+    <div class="carrossel__acoes">
+      <a class="link-forte" href="/blog">Ver todos os textos</a>
+      <?php if (count($posts) > 1): ?>
+      <button type="button" class="carrossel__seta" data-carrossel-ant aria-label="Post anterior">‹</button>
+      <button type="button" class="carrossel__seta" data-carrossel-prox aria-label="Próximo post">›</button>
+      <?php endif; ?>
+    </div>
   </div>
-  <div class="grade">
+  <div class="carrossel" data-carrossel aria-roledescription="carrossel">
+    <div class="carrossel__trilho" data-carrossel-trilho tabindex="0">
     <?php foreach ($posts as $p): ?>
-      <article class="card card--post">
+      <article class="card card--post carrossel__item">
         <a class="card__link" href="<?= e(post_url($p)) ?>">
           <div class="card__foto"><img src="<?= e(capa_post_url($p, 'p') ?? asset('img/hero-placeholder.svg')) ?>" alt="" loading="lazy" width="640" height="427"></div>
           <div class="card__corpo">
@@ -82,6 +89,7 @@ $heroFoto = is_file(rtrim((string)config('public_dir'), '/') . '/assets/img/hero
         </a>
       </article>
     <?php endforeach; ?>
+    </div>
   </div>
 </section>
 <?php endif; ?>

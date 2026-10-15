@@ -13,6 +13,28 @@
     });
   }
 
+  // Carrossel do blog (página inicial): do mais recente ao mais antigo, passa sozinho
+  document.querySelectorAll('[data-carrossel]').forEach(function (c) {
+    var trilho = c.querySelector('[data-carrossel-trilho]');
+    var secao = c.closest('section') || c;
+    var ant = secao.querySelector('[data-carrossel-ant]');
+    var prox = secao.querySelector('[data-carrossel-prox]');
+    if (!trilho || trilho.children.length < 2) return;
+    function passo() { var i = trilho.children[0]; return i.getBoundingClientRect().width + 20; }
+    function noFim() { return trilho.scrollLeft + trilho.clientWidth >= trilho.scrollWidth - 4; }
+    function avancar() { if (noFim()) trilho.scrollTo({ left: 0 }); else trilho.scrollBy({ left: passo() }); }
+    function voltar() { if (trilho.scrollLeft <= 4) trilho.scrollTo({ left: trilho.scrollWidth }); else trilho.scrollBy({ left: -passo() }); }
+    if (prox) prox.addEventListener('click', function () { avancar(); reiniciar(); });
+    if (ant) ant.addEventListener('click', function () { voltar(); reiniciar(); });
+    var reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var timer = null, pausado = false;
+    function reiniciar() { clearInterval(timer); if (!reduzir) timer = setInterval(function () { if (!pausado && !document.hidden) avancar(); }, 5000); }
+    ['mouseenter', 'focusin', 'touchstart'].forEach(function (e) { c.addEventListener(e, function () { pausado = true; }, { passive: true }); });
+    ['mouseleave', 'focusout'].forEach(function (e) { c.addEventListener(e, function () { pausado = false; }); });
+    c.addEventListener('touchend', function () { setTimeout(function () { pausado = false; }, 4000); }, { passive: true });
+    reiniciar();
+  });
+
   // Galeria de fotos
   var galeria = document.querySelector('[data-galeria]');
   if (galeria) {

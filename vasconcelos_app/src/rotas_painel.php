@@ -549,7 +549,7 @@ function painel_blog_form(array $user, ?int $id, bool $post): void
         abort(404);
     }
     $erros = [];
-    $v = $p ?? ['status' => 'rascunho'];
+    $v = $p ?? ['status' => 'publicado', 'publicado_em' => date('Y-m-d H:i:s')];
     if ($post) {
         [$dados, $erros] = validar_post($_POST, $id);
         if (!$erros) {

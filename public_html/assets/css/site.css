@@ -356,3 +356,15 @@ img.corretor__avatar { object-fit: cover; flex: none; }
 /* capa dos posts sempre na mesma proporção, mesmo com foto vertical */
 .card--post .card__foto { aspect-ratio: 3 / 2; overflow: hidden; }
 .card--post .card__foto img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Carrossel do blog na página inicial */
+.carrossel__acoes { display: flex; align-items: center; gap: 8px; }
+.carrossel__acoes .link-forte { margin-right: 8px; }
+.carrossel__seta { width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--linha-forte); background: #fff; color: var(--tinta); font-size: 24px; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.carrossel__seta:hover { border-color: var(--tinta); }
+.carrossel__trilho { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; padding: 4px 2px 8px; }
+.carrossel__trilho::-webkit-scrollbar { display: none; }
+.carrossel__item { flex: 0 0 85%; scroll-snap-align: start; }
+@media (min-width: 700px) { .carrossel__item { flex-basis: calc((100% - 20px) / 2); } }
+@media (min-width: 1000px) { .carrossel__item { flex-basis: calc((100% - 40px) / 3); } }
+@media (prefers-reduced-motion: reduce) { .carrossel__trilho { scroll-behavior: auto; } }
