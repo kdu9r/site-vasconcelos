@@ -3,6 +3,7 @@
 $aqui = request_path();
 $abas = [
     '/painel/configuracoes/compartilhar' => 'Compartilhar',
+    '/painel/usuarios' => 'Acessos',
     '/painel/integracoes' => 'Integrações',
     '/painel/importar' => 'Migração',
 ];

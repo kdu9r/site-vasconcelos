@@ -1,5 +1,6 @@
 <?php /** @var array $usuarios @var array $atividades @var ?string $erro @var ?string $senha_gerada @var array $usuario */ ?>
-<div class="p-cabeca"><h1>Acessos</h1></div>
+<?php require __DIR__ . '/config_subnav.php'; ?>
+<h2 class="p-subtitulo">Acessos</h2>
 <?php if ($erro): ?><div class="p-aviso p-aviso--erro" role="alert"><?= e($erro) ?></div><?php endif; ?>
 <?php if ($senha_gerada): ?>
   <div class="p-aviso p-aviso--ok">

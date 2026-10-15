@@ -25,8 +25,7 @@ $ativo = fn(string $p) => ($p === '/painel' ? $path === '/painel' || str_starts_
       <a href="/painel/blog"<?= $ativo('/painel/blog') ?>>Blog</a>
       <a href="/painel/conta"<?= $ativo('/painel/conta') ?>>Minha conta</a>
       <?php if ($usuario['papel'] === 'admin'): ?>
-        <a href="/painel/usuarios"<?= $ativo('/painel/usuarios') ?>>Acessos</a>
-        <a href="/painel/configuracoes"<?= ($ativo('/painel/configuracoes') ?: $ativo('/painel/integracoes') ?: $ativo('/painel/importar')) ?>>Configurações</a>
+        <a href="/painel/configuracoes"<?= ($ativo('/painel/configuracoes') ?: $ativo('/painel/usuarios') ?: $ativo('/painel/integracoes') ?: $ativo('/painel/importar')) ?>>Configurações</a>
       <?php endif; ?>
       <a href="/" target="_blank" rel="noopener">Ver site ↗</a>
     </nav>
