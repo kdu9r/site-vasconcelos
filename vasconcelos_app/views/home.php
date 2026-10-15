@@ -8,7 +8,7 @@ $heroFoto = is_file(rtrim((string)config('public_dir'), '/') . '/assets/img/hero
     <h1 id="hero-titulo" class="hero__logo">
       <img src="<?= e(asset('img/logo-vertical-branco.svg')) ?>" alt="<?= e((string)config('site_nome')) ?>, imóveis em Bertioga" width="941" height="409">
     </h1>
-    <p class="hero__sub">Casas e apartamentos em Bertioga, para comprar ou alugar.</p>
+    <p class="hero__sub">Seu imóvel na praia</p>
     <?php partial('busca', ['bairros' => $bairros, 'tipos' => $tipos]); ?>
     <form class="busca-codigo" action="/busca" method="get">
       <label for="codigo">Já tem o código?</label>
