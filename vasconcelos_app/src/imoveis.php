@@ -166,6 +166,14 @@ function whatsapp_padrao(): string
     return (string)config('contato.whatsapp_principal');
 }
 
+/** Texto do botão de WhatsApp do topo: o número da pessoa fixa, ou "WhatsApp" quando é aleatório. */
+function whatsapp_rotulo_menu(): string
+{
+    $permitidos = array_column((array)config('contato.corretores', []), 'whatsapp');
+    $escolha = (string)(config_site('whatsapp_destino') ?? 'aleatorio');
+    return in_array($escolha, $permitidos, true) ? formata_telefone($escolha) : 'Fale no WhatsApp';
+}
+
 function formata_telefone(string $numero): string
 {
     $d = preg_replace('/\D/', '', $numero) ?? '';

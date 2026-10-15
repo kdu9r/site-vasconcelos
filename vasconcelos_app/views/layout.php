@@ -54,7 +54,7 @@ $corretores = (array)config('contato.corretores', []);
       <a href="/anuncie">Anuncie seu imóvel</a>
       <a class="menu__whats" href="<?= e(whatsapp_link(null, 'menu')) ?>" rel="nofollow">
         <?php partial('icone_whats', ['tam' => 18]); ?>
-        <?= e(formata_telefone((string)config('contato.whatsapp_principal'))) ?>
+        <?= e(whatsapp_rotulo_menu()) ?>
       </a>
     </nav>
     <button class="menu-botao" type="button" aria-controls="menu" aria-expanded="false" aria-label="Abrir menu">
