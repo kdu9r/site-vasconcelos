@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   whatsapp      VARCHAR(20)  NULL,
   totp_secret   VARCHAR(64)  NULL,
   totp_ativo    TINYINT(1)   NOT NULL DEFAULT 0,
+  sessao_versao INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'sobe ao trocar senha/2 etapas: derruba as outras sessões',
   ativo         TINYINT(1)   NOT NULL DEFAULT 1,
   ultimo_login  DATETIME     NULL,
   criado_em     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

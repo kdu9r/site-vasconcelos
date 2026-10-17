@@ -81,8 +81,8 @@ Se a API não responder pelo domínio, troque `code49.base_url` para `https://ww
 Todo imóvel, novo ou migrado, nasce com o CanalPro **desligado** (no site, o imóvel novo já entra no ar e em destaque). Nada vai para os portais sem alguém ligar.
 
 1. Para ligar um a um: no imóvel, bloco **7. Publicação** → *Anunciar no CanalPro*. Para ligar todos de uma vez: Painel → **Migração** → *Ligar CanalPro em todos os imóveis no ar*.
-2. Abra `https://SEU-SITE/feed/canalpro.xml` e confira se os imóveis aparecem.
-3. No **CanalPro** → *Integração* (ou peça ao suporte do Grupo ZAP): cadastre a URL do feed, formato **VRSync**.
+2. Painel → **Configurações → Migração** → copie o **endereço do feed** (`/feed/canalpro-<código>.xml`). Ele é secreto porque traz endereço completo e localização de todos os imóveis; não divulgue. Abra no navegador e confira se os imóveis aparecem.
+3. No **CanalPro** → *Integração* (ou peça ao suporte do Grupo ZAP): cadastre esse endereço, formato **VRSync**. Se ele vazar, use *Gerar endereço novo* e atualize no CanalPro.
 4. Só entram no feed os imóveis completos: **5+ fotos, descrição com 50+ letras, CEP e área**. O painel mostra o que falta em cada um ("Fora do CanalPro: falta informação"). Os itens marcados no cadastro (piscina, portão eletrônico etc.) vão com os nomes oficiais do CanalPro.
 5. Depois que o CanalPro importar, **pare de cadastrar à mão por lá**, senão os anúncios duplicam.
 
@@ -123,15 +123,43 @@ Depois da primeira instalação (feita à mão, com o zip), as atualizações ch
    - aba *Variables*: `DEPLOY_DIR` = pasta no servidor, terminando em `/` (ex.: `demo-vasconcelos/` no teste, `./` no site definitivo).
 3. Em **Actions → Publicar na HostGator → Run workflow** dá para publicar na hora, sem alteração nova.
 
-O envio nunca mexe no `config.php`, nas fotos enviadas pelo painel nem na pasta `storage`. Se o FTP recusar a conexão segura, troque `protocol: ftps` por `protocol: ftp` no arquivo `.github/workflows/publicar.yml`.
+O envio nunca mexe no `config.php`, nas fotos enviadas pelo painel nem na pasta `storage`. Quando uma atualização precisa de coluna nova no banco, ela é criada sozinha na primeira visita ao site (`src/migracoes.php`). Se o FTP recusar a conexão segura, troque `protocol: ftps` por `protocol: ftp` no arquivo `.github/workflows/publicar.yml`.
+
+## Backup semanal
+
+São duas partes: o servidor gera o backup e o GitHub guarda uma cópia fora da HostGator (um backup que fica só no mesmo servidor não ajuda se a hospedagem cair ou for invadida).
+
+**1. Gerar no servidor (cPanel → Trabalhos Cron)**
+
+- Configuração comum: *Uma vez por semana* (ou preencha: minuto `0`, hora `3`, dia `*`, mês `*`, dia da semana `0`).
+- Comando (troque `USUARIO` pelo usuário do cPanel; no site de teste, inclua a pasta `demo-vasconcelos/`):
+  ```
+  /usr/local/bin/php /home/USUARIO/vasconcelos_app/scripts/backup.php
+  ```
+- No topo da página de Cron, em *E-mail do Cron*, coloque seu e-mail: se o backup falhar, chega um aviso.
+- Gera em `vasconcelos_app/storage/backups/` (pasta bloqueada para a internet): `banco-AAAA-MM-DD.sql.gz` (guarda as 8 últimas semanas) e `fotos.zip` (a mais recente). O resumo fica em `ultimo.txt`.
+- Para testar na hora: *Terminal* do cPanel → rode o mesmo comando.
+
+**2. Cópia fora da HostGator (GitHub)**
+
+- GitHub → **Settings → Secrets and variables → Actions** → *Secrets* → crie `BACKUP_SENHA` com uma senha longa. **Guarde essa senha** (gerenciador de senhas): sem ela o backup não abre.
+- Opcional: *Variables* → `BACKUP_FOTOS` = `sim` para levar também as fotos.
+- Todo domingo às 6h o fluxo **Backup semanal** baixa o backup, tranca com a senha (AES-256) e guarda por 90 dias em *Actions → Backup semanal → Artifacts*. Se o backup do servidor tiver mais de 9 dias, o fluxo falha e o GitHub avisa por e-mail.
+
+**Restaurar**
+
+- Banco: `gpg --decrypt banco-AAAA-MM-DD.sql.gz.gpg > banco.sql.gz` (pede a senha) → cPanel → phpMyAdmin → banco → *Importar*.
+- Fotos: descompacte o `fotos.zip` dentro de `public_html/uploads/`.
+- Guarde também uma cópia do `config.php` (tem as senhas do banco; ele não entra no backup).
 
 ## Segurança: o que já está pronto
 
 - Código e configuração fora da pasta pública; nenhum `.php` além do `index.php` executa.
 - Senhas com hash forte (Argon2id/bcrypt). Nenhuma senha é guardada em texto.
 - Bloqueio de 15 minutos após 5 senhas erradas (por e-mail) ou 10 (por IP).
-- Verificação em duas etapas (app autenticador) opcional por usuário.
-- Sessão expira após 2 h parado (12 h no máximo) e vale só para o navegador que fez login.
+- Verificação em duas etapas (app autenticador) **obrigatória**: quem ainda não ativou só consegue abrir *Minha conta* até ativar.
+- Sessão expira após 24 h parado (7 dias no máximo) e vale só para o navegador que fez login. Trocar ou redefinir a senha derruba as sessões abertas nos outros aparelhos.
+- Feed do CanalPro num endereço secreto (ele tem endereço completo dos imóveis) e mapa público com localização aproximada quando o imóvel mostra só bairro ou rua.
 - Proteção contra CSRF, XSS (CSP rígida) e SQL injection (consultas preparadas).
 - Fotos recriadas do zero no upload (remove arquivos maliciosos e dados de GPS das fotos).
 - Registro de atividades: quem entrou, editou, excluiu (painel → Acessos).

@@ -10,6 +10,7 @@ function run_app(): void
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
     try {
+        migrar_banco();
         if (str_starts_with($path, '/painel')) {
             send_security_headers(true);
             start_session();

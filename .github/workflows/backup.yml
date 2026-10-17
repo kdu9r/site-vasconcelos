@@ -1,0 +1,93 @@
+# Cópia do backup FORA da HostGator, toda semana.
+# O cron do cPanel gera o backup no servidor (scripts/backup.php, domingo de madrugada);
+# este fluxo baixa por FTP, tranca com senha (AES-256) e guarda no GitHub por 90 dias.
+# Assim, se a hospedagem sumir ou for invadida, ainda existe uma cópia em outro lugar.
+#
+# Configuração (GitHub → Settings → Secrets and variables → Actions):
+#   Secret:   BACKUP_SENHA   senha longa para trancar os arquivos (guarde num lugar seguro: sem ela não abre)
+#   Variable: BACKUP_FOTOS   "sim" para levar também o fotos.zip (opcional; ocupa mais espaço)
+#   Usa os mesmos FTP_SERVER, FTP_USERNAME, FTP_PASSWORD e DEPLOY_DIR da publicação.
+#
+# Baixar: Actions → Backup semanal → execução mais recente → Artifacts.
+# Abrir:  gpg --decrypt banco-AAAA-MM-DD.sql.gz.gpg > banco.sql.gz   (pede a BACKUP_SENHA)
+
+name: Backup semanal
+
+on:
+  schedule:
+    - cron: '0 9 * * 0' # domingo, 6h em Brasília (o cron do cPanel roda às 3h)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  copiar:
+    runs-on: ubuntu-latest
+    if: ${{ vars.DEPLOY_DIR != '' }}
+    steps:
+      - name: Conferir configuração
+        id: conf
+        env:
+          BACKUP_SENHA: ${{ secrets.BACKUP_SENHA }}
+        run: |
+          if [ -z "$BACKUP_SENHA" ]; then
+            echo "::notice::Cópia do backup desligada: crie o secret BACKUP_SENHA para ligar."
+            echo "ok=nao" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=sim" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Baixar o backup mais recente da HostGator
+        if: steps.conf.outputs.ok == 'sim'
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          PASTA: ${{ vars.DEPLOY_DIR }}vasconcelos_app/storage/backups
+          FOTOS: ${{ vars.BACKUP_FOTOS }}
+        run: |
+          sudo apt-get install -y -qq lftp > /dev/null
+          mkdir -p baixados
+          # mesmo modo de conexão da publicação (FTPS sem conferir o certificado do servidor compartilhado)
+          CONF="set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set net:max-retries 2; set net:timeout 30"
+          ULTIMO=$(lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "$CONF; cd '$PASTA'; cls -1 --sort=name banco-*.sql.gz; bye" | tail -n 1)
+          if [ -z "$ULTIMO" ]; then
+            echo "::error::Nenhum backup do banco no servidor. Confira o cron do cPanel (scripts/backup.php)."
+            exit 1
+          fi
+          echo "Backup do banco: $ULTIMO"
+          EXTRA=""
+          [ "$FOTOS" = "sim" ] && EXTRA="get fotos.zip -o baixados/fotos.zip;"
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_SERVER" -e "$CONF; cd '$PASTA'; get '$ULTIMO' -o 'baixados/$ULTIMO'; get ultimo.txt -o baixados/ultimo.txt; $EXTRA bye"
+          cat baixados/ultimo.txt 2>/dev/null || true
+          # backup com mais de 9 dias = o cron parou de rodar
+          DATA=$(echo "$ULTIMO" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}')
+          if [ $(( ( $(date +%s) - $(date -d "$DATA" +%s) ) / 86400 )) -gt 9 ]; then
+            echo "::error::O backup mais recente é de $DATA. O cron do cPanel parou de rodar?"
+            exit 1
+          fi
+
+      - name: Trancar com senha
+        if: steps.conf.outputs.ok == 'sim'
+        env:
+          BACKUP_SENHA: ${{ secrets.BACKUP_SENHA }}
+        run: |
+          cd baixados
+          for f in *.gz *.zip; do
+            [ -f "$f" ] || continue
+            gpg --batch --yes --symmetric --cipher-algo AES256 --passphrase-fd 0 -o "$f.gpg" "$f" <<< "$BACKUP_SENHA"
+            rm -f "$f"
+          done
+          ls -lh
+
+      - name: Guardar no GitHub (90 dias)
+        if: steps.conf.outputs.ok == 'sim'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ github.run_number }}
+          path: |
+            baixados/*.gpg
+            baixados/ultimo.txt
+          retention-days: 90
+          compression-level: 0

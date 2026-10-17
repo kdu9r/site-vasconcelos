@@ -163,6 +163,22 @@ function extrair_imovel_texto(string $texto, array $condominios = []): array
             $juntas[] = $l;
         }
     }
+    // "Condomínio R$ 800 / IPTU R$ 1.200 ao ano" numa linha só: separa em duas
+    $separadas = [];
+    foreach ($juntas as $l) {
+        $lbx = mb_strtolower($l);
+        $temCond = preg_match('/condom[íi]nio/u', $lbx);
+        $temIptu = preg_match('/iptu/u', $lbx);
+        $temPreco = preg_match('/venda|loca[çc][ãa]o|aluguel/u', $lbx);
+        if (($temCond + $temIptu + $temPreco) >= 2) {
+            foreach (preg_split('/\s*[\/|;]\s*|\s+[-–]\s+|\s+\+\s+|\s+e\s+(?=(iptu|condom))/u', $l) ?: [$l] as $parte) {
+                if (trim($parte) !== '') $separadas[] = $parte;
+            }
+        } else {
+            $separadas[] = $l;
+        }
+    }
+    $juntas = $separadas;
     foreach ($juntas ?: preg_split('/[,;\n]/', $texto) as $l) {
         $lb = mb_strtolower($l);
         $v = valor_por_extenso(preg_replace('/^[^\d]*?(?=r\$|\d)/u', '', $lb) ?? $lb);
@@ -233,7 +249,10 @@ function extrair_imovel_texto(string $texto, array $condominios = []): array
             $antes = mb_substr(substr($txtImovel, max(0, $pos - 40), min(40, $pos)), -40);
             $v = (float)str_replace(',', '.', str_replace('.', '', $n));
             if ($v < 10 || $v > 100000) continue;
-            if (preg_match('/m da praia|metros da praia/u', substr($txtImovel, $pos, 40))) continue;
+            // "200 mts da praia" é distância, não área. Olha só o que vem logo depois da unidade:
+            // antes olhava 40 letras e descartava "120 m², Indaiá, a 300 metros da praia".
+            [$inteiro, $posInteiro] = $mm[0][$i];
+            if (preg_match('/^\s*(d[aoe]s?|at[ée] (a|o)|ao|à)\s+(praia|mar|areia|orla)/u', substr($txtImovel, $posInteiro + strlen($inteiro), 30))) continue;
             $tipoArea = preg_match('/total|terreno|lote/u', $antes) ? 'area_total' : (preg_match('/[úu]til|privativa|constru/u', $antes) ? 'area_util' : null);
             $areas[] = [$tipoArea, $v];
         }

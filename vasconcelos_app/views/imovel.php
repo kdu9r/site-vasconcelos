@@ -43,14 +43,12 @@ if ($im['condominio'] !== null && !$im['locacao_pacote']) $extras[] = 'Condomín
 if ($im['iptu'] !== null && !$im['locacao_pacote']) $extras[] = 'IPTU ' . money($im['iptu']) . ($im['iptu_periodo'] === 'anual' ? '/ano' : '/mês');
 
 $mapa = null;
-if ($im['latitude'] !== null && $im['longitude'] !== null) {
-    $lat = (float)$im['latitude'];
-    $lng = (float)$im['longitude'];
-    $d = $im['exibir_endereco'] === 'bairro' ? 0.012 : 0.006;
+if ($pos = coordenadas_publicas($im)) {
+    [$lat, $lng, $d, $marcador] = $pos;
     $mapa = 'https://www.openstreetmap.org/export/embed.html?' . http_build_query([
         'bbox' => implode(',', [$lng - $d, $lat - $d * 0.6, $lng + $d, $lat + $d * 0.6]),
         'layer' => 'mapnik',
-    ]) . ($im['exibir_endereco'] !== 'bairro' ? '&marker=' . $lat . ',' . $lng : '');
+    ]) . ($marcador ? '&marker=' . $lat . ',' . $lng : '');
 }
 
 $urlCompleta = url(url_imovel($im));
@@ -76,7 +74,11 @@ $mensagem = whatsapp_mensagem($im);
 </div>
 
 <?php if ($indisponivel): ?>
+  <?php if ($im['status'] === 'pausado'): ?>
+  <div class="aviso aviso--aviso">Este anúncio está pausado no momento. Fale com a gente pelo WhatsApp para saber se o imóvel ainda está disponível, ou veja opções parecidas abaixo.</div>
+  <?php else: ?>
   <div class="aviso aviso--aviso">Este imóvel não está mais disponível<?= $im['status'] === 'vendido' ? ' (vendido)' : ($im['status'] === 'alugado' ? ' (alugado)' : '') ?>. Veja opções parecidas abaixo ou fale com a gente.</div>
+  <?php endif; ?>
 <?php endif; ?>
 
 <section class="galeria" aria-label="Fotos do imóvel" data-galeria>
@@ -190,7 +192,7 @@ $mensagem = whatsapp_mensagem($im);
         <div class="mapa">
           <iframe title="Mapa da região do imóvel" src="<?= e($mapa) ?>" loading="lazy" referrerpolicy="no-referrer"></iframe>
         </div>
-        <?php if ($im['exibir_endereco'] === 'bairro'): ?><p class="nota">Localização aproximada. O endereço exato é informado na visita.</p><?php endif; ?>
+        <?php if ($im['exibir_endereco'] !== 'completo'): ?><p class="nota">Localização aproximada. O endereço exato é informado na visita.</p><?php endif; ?>
       <?php endif; ?>
     </section>
   </div>

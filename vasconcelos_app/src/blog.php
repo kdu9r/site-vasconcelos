@@ -121,8 +121,8 @@ function validar_post(array $in, ?int $id = null): array
         $slug = $base . '-' . $n++;
     }
     $d['slug'] = $slug;
-    $d['resumo'] = mb_substr(trim(strip_tags((string)($in['resumo'] ?? ''))), 0, 220) ?: null;
-    $d['conteudo'] = trim(strip_tags((string)($in['conteudo'] ?? ''))) ?: null;
+    $d['resumo'] = mb_substr(limpar_texto((string)($in['resumo'] ?? '')), 0, 220) ?: null;
+    $d['conteudo'] = limpar_texto((string)($in['conteudo'] ?? '')) ?: null;
     $d['status'] = ($in['status'] ?? '') === 'publicado' ? 'publicado' : 'rascunho';
     if ($d['status'] === 'publicado' && mb_strlen((string)$d['conteudo']) < 300) {
         $erros['conteudo'] = 'Para publicar, escreva pelo menos 300 caracteres. Textos curtos não ajudam no Google.';

@@ -48,6 +48,32 @@ function features_vrsync(array $im): array
     return array_keys($out);
 }
 
+/**
+ * O feed tem endereço completo, número e coordenadas de todos os imóveis (o CanalPro precisa disso
+ * para posicionar o anúncio). Por isso ele só abre num endereço secreto: /feed/canalpro-<código>.xml.
+ * O código é criado sozinho na primeira vez que o painel mostra o endereço.
+ */
+function feed_token(bool $criar = false): string
+{
+    $t = (string)(config_site('feed_token') ?? '');
+    if ($t === '' && $criar) {
+        $t = bin2hex(random_bytes(16));
+        salvar_config_site(['feed_token' => $t]);
+    }
+    return $t;
+}
+
+function feed_token_valido(string $enviado): bool
+{
+    $t = feed_token();
+    return $t !== '' && hash_equals($t, $enviado);
+}
+
+function feed_url(): string
+{
+    return url('/feed/canalpro-' . feed_token(true) . '.xml');
+}
+
 function imoveis_para_portal(): array
 {
     $lista = q("SELECT * FROM imoveis WHERE status = 'ativo' AND publicar_portais = 1 ORDER BY id")->fetchAll();
@@ -123,7 +149,7 @@ function gerar_feed_vrsync(): string
         $x->startElement('Details');
         $x->writeElement('UsageType', $tipo['uso']);
         $x->writeElement('PropertyType', $tipo['vrsync']);
-        $x->startElement('Description'); $x->writeCdata(mb_substr(strip_tags((string)$im['descricao']), 0, 3000)); $x->endElement();
+        $x->startElement('Description'); $x->writeCdata(str_replace(']]>', ']] >', mb_substr(limpar_texto((string)$im['descricao']), 0, 3000))); $x->endElement();
         if ($venda) {
             $x->startElement('ListPrice'); $x->writeAttribute('currency', 'BRL'); $x->text((string)(int)round((float)$im['preco_venda'])); $x->endElement();
         }

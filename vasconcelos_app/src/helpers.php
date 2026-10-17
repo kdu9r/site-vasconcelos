@@ -203,6 +203,15 @@ function take_flashes(): array
 
 /* ---------- Utilidades ---------- */
 
+/**
+ * Tira tags HTML coladas por engano, sem engolir texto como "<300 m da praia" (o strip_tags cortava
+ * tudo depois do "<"). A segurança não depende disto: toda saída passa por e().
+ */
+function limpar_texto(string $s): string
+{
+    return trim(preg_replace('/<\/?[a-zA-Z!][^<>]*>/', '', $s) ?? $s);
+}
+
 function client_ip_hash(): string
 {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
@@ -227,8 +236,9 @@ function money(float|string|null $value, bool $compact = false): string
     }
     $v = (float)$value;
     if ($compact) {
-        if ($v >= 1_000_000) {
-            $m = $v / 1_000_000;
+        // 999.999 arredondaria para "1.000 mil": a partir de 999.950 já vira "1 milhão"
+        if ($v >= 999_950) {
+            $m = round($v / 1_000_000, 2);
             $txt = rtrim(rtrim(number_format($m, 2, ',', '.'), '0'), ',');
             return 'R$ ' . $txt . ($m >= 2 ? ' milhões' : ' milhão');
         }

@@ -79,7 +79,7 @@ function validar_condominio(array $in, ?int $id = null): array
     }
     $d['slug'] = $slug;
     $d['nome_publico'] = !empty($in['nome_publico']) ? 1 : 0;
-    $d['descricao'] = trim(strip_tags((string)($in['descricao'] ?? ''))) ?: null;
+    $d['descricao'] = limpar_texto((string)($in['descricao'] ?? '')) ?: null;
     if (isset($in['lazer_itens']) || isset($in['lazer_outros'])) {
         $d['lazer'] = juntar_itens(array_map('strval', (array)($in['lazer_itens'] ?? [])), (string)($in['lazer_outros'] ?? ''), itens_do_condominio());
     } else {

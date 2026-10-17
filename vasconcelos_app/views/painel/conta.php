@@ -10,10 +10,11 @@
       <?= csrf_field() ?>
       <input type="hidden" name="acao" value="desativar_2fa">
       <label class="p-campo"><span>Senha atual</span><input type="password" name="senha_atual" autocomplete="current-password" required></label>
-      <button class="p-botao" type="submit">Desativar</button>
+      <button class="p-botao" type="submit"><?= exige_2fa() ? 'Trocar de celular' : 'Desativar' ?></button>
     </form>
+    <?php if (exige_2fa()): ?><p class="p-nota">Trocou de celular? Use o botão acima e escaneie o código de novo no aparelho novo. Perdeu o celular? Peça ao administrador para tirar as 2 etapas da sua conta.</p><?php endif; ?>
   <?php else: ?>
-    <p>Protege o painel mesmo se alguém descobrir sua senha. <strong>Recomendado.</strong></p>
+    <p>Protege o painel mesmo se alguém descobrir sua senha. <strong><?= exige_2fa() ? 'Obrigatório para usar o painel.' : 'Recomendado.' ?></strong></p>
     <ol class="p-passos">
       <li>Instale o <strong>Google Authenticator</strong> (ou Microsoft Authenticator) no celular.</li>
       <li>No app, toque em <strong>+</strong> e escaneie o código abaixo.</li>
