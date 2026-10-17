@@ -24,6 +24,15 @@ function rotear_painel(string $path, string $method): void
 
     $user = require_login();
 
+    // 2 etapas obrigatória: sem ela, a pessoa só acessa "Minha conta" (para ativar) e "Sair"
+    if (exige_2fa() && !(int)$user['totp_ativo'] && !in_array($path, ['/painel/conta', '/painel/sair'], true)) {
+        if ($post) {
+            json_response(['erro' => 'Ative a verificação em duas etapas em Minha conta.'], 403);
+        }
+        flash('aviso', 'Para proteger o painel, ative a verificação em duas etapas antes de continuar. Leva 1 minuto.');
+        redirect('/painel/conta');
+    }
+
     switch (true) {
         case $path === '/painel':
             painel_inicio($user);
@@ -497,8 +506,9 @@ function painel_conta(array $user, bool $post): void
             $erro = senha_valida($nova) ?? ($nova !== ($_POST['confirmar'] ?? '') ? 'As senhas não conferem.' : null);
             if (!$erro) {
                 q('UPDATE usuarios SET senha_hash = ? WHERE id = ?', [hash_senha($nova), $user['id']]);
-                log_atividade('trocou senha');
                 session_regenerate_id(true);
+                encerrar_outras_sessoes((int)$user['id']);
+                log_atividade('trocou senha');
                 flash('ok', 'Senha alterada.');
                 redirect('/painel/conta');
             }
@@ -507,6 +517,7 @@ function painel_conta(array $user, bool $post): void
             if ($secret && totp_verify($secret, (string)($_POST['codigo'] ?? ''))) {
                 q('UPDATE usuarios SET totp_secret = ?, totp_ativo = 1 WHERE id = ?', [$secret, $user['id']]);
                 unset($_SESSION['totp_novo']);
+                encerrar_outras_sessoes((int)$user['id']); // quem entrou sem o código em outro aparelho sai
                 log_atividade('ativou 2 etapas');
                 flash('ok', 'Verificação em duas etapas ativada.');
                 redirect('/painel/conta');
@@ -514,8 +525,9 @@ function painel_conta(array $user, bool $post): void
             $erro = 'Código incorreto. Confira o horário do celular e tente de novo.';
         } elseif ($acao === 'desativar_2fa') {
             q('UPDATE usuarios SET totp_secret = NULL, totp_ativo = 0 WHERE id = ?', [$user['id']]);
+            encerrar_outras_sessoes((int)$user['id']);
             log_atividade('desativou 2 etapas');
-            flash('aviso', 'Verificação em duas etapas desativada.');
+            flash('aviso', exige_2fa() ? 'Celular antigo desligado. Agora escaneie o código abaixo com o celular novo.' : 'Verificação em duas etapas desativada.');
             redirect('/painel/conta');
         }
     }
@@ -559,14 +571,17 @@ function painel_usuarios(array $admin, bool $post): void
             } elseif ($acao === 'redefinir') {
                 $senhaGerada = gerar_senha_temporaria();
                 q('UPDATE usuarios SET senha_hash = ? WHERE id = ?', [hash_senha($senhaGerada), $uid]);
+                encerrar_outras_sessoes($uid);
                 log_atividade('redefiniu senha', 'usuário ' . $uid);
             } elseif ($acao === 'zerar_2fa') {
                 q('UPDATE usuarios SET totp_secret = NULL, totp_ativo = 0 WHERE id = ?', [$uid]);
+                encerrar_outras_sessoes($uid);
                 log_atividade('zerou 2 etapas', 'usuário ' . $uid);
                 flash('ok', 'Verificação em duas etapas removida desse usuário.');
                 redirect('/painel/usuarios');
             } else {
                 q('UPDATE usuarios SET ativo = ? WHERE id = ?', [$acao === 'ativar' ? 1 : 0, $uid]);
+                encerrar_outras_sessoes($uid);
                 log_atividade($acao === 'ativar' ? 'reativou usuário' : 'desativou usuário', 'usuário ' . $uid);
                 flash('ok', 'Acesso ' . ($acao === 'ativar' ? 'reativado.' : 'bloqueado.'));
                 redirect('/painel/usuarios');
@@ -606,6 +621,12 @@ function painel_importar(array $admin, bool $post): void
             flash('ok', "CanalPro ligado em $n imóveis no ar. Só entram no feed os que estão completos (5 fotos, CEP, área…).");
             redirect('/painel/importar');
         }
+        if ($acao === 'novo_feed') {
+            salvar_config_site(['feed_token' => bin2hex(random_bytes(16))]);
+            log_atividade('trocou endereço do feed do CanalPro');
+            flash('aviso', 'Endereço do feed trocado. Atualize o endereço novo no CanalPro, senão os anúncios param de atualizar.');
+            redirect('/painel/importar#feed');
+        }
         try {
             if ($acao === 'listar') {
                 $total = code49_montar_fila();
@@ -626,6 +647,7 @@ function painel_importar(array $admin, bool $post): void
         'titulo_pagina' => 'Migração da Code49',
         'estado' => code49_estado_fila(),
         'token_configurado' => (string)config('code49.token') !== '',
+        'feed_url' => feed_url(),
     ]);
 }
 

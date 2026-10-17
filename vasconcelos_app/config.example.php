@@ -47,6 +47,8 @@ return [
 
     // Coloque true só enquanto estiver testando
     'debug' => false,
+    // Verificação em duas etapas obrigatória para todos no painel. Só desligue (false) em testes no computador.
+    'exigir_2fa' => true,
     // Subdomínio de demonstração: true = Google não indexa e o feed do CanalPro fica desligado.
     // Na instalação definitiva (vasconceloscorretor.com), deixe false.
     'modo_teste' => false,

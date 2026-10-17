@@ -32,3 +32,4 @@ require APP_DIR . '/src/condominios.php';
 require APP_DIR . '/src/code49.php';
 require APP_DIR . '/src/integracoes.php';
 require APP_DIR . '/src/preencher.php';
+require APP_DIR . '/src/migracoes.php';

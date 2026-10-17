@@ -114,6 +114,27 @@ function endereco_publico(array $im): string
     return implode(', ', $partes);
 }
 
+/**
+ * Posição do mapa público: [lat, lng, meia-largura do recorte, mostra marcador?].
+ * O endereço do iframe é público, então em "só bairro" e "só rua" a coordenada real nunca sai daqui:
+ * - bairro: arredondada a ~1 km (grade de 0,01°), sem marcador;
+ * - rua: arredondada a ~100 m, sem marcador (o marcador entregaria o número da casa);
+ * - completo: posição exata com marcador.
+ */
+function coordenadas_publicas(array $im): ?array
+{
+    if ($im['latitude'] === null || $im['longitude'] === null || $im['latitude'] === '' || $im['longitude'] === '') {
+        return null;
+    }
+    $lat = (float)$im['latitude'];
+    $lng = (float)$im['longitude'];
+    return match ($im['exibir_endereco']) {
+        'completo' => [$lat, $lng, 0.006, true],
+        'rua' => [round($lat, 3), round($lng, 3), 0.006, false],
+        default => [round($lat, 2), round($lng, 2), 0.015, false],
+    };
+}
+
 function caracteristicas_lista(array $im): array
 {
     $linhas = preg_split('/\r\n|\r|\n/', (string)($im['caracteristicas'] ?? '')) ?: [];
@@ -372,7 +393,7 @@ function validar_imovel(array $in, ?int $id = null): array
     if (mb_strlen($d['titulo']) < 10 || mb_strlen($d['titulo']) > 100) {
         $erros['titulo'] = 'O título precisa ter entre 10 e 100 caracteres (exigência do CanalPro).';
     }
-    $d['descricao'] = trim(strip_tags((string)($in['descricao'] ?? '')));
+    $d['descricao'] = limpar_texto((string)($in['descricao'] ?? ''));
     if (mb_strlen($d['descricao']) > 3000) {
         $erros['descricao'] = 'Máximo de 3.000 caracteres.';
     }
@@ -384,8 +405,8 @@ function validar_imovel(array $in, ?int $id = null): array
     $d['finalidade'] = $d['finalidade'] === 'Commercial' ? 'comercial' : 'residencial';
 
     $negocio = (array)($in['negocio'] ?? []);
-    $d['preco_venda'] = in_array('venda', $negocio, true) ? parse_decimal($in['preco_venda'] ?? null) : null;
-    $d['preco_locacao'] = in_array('locacao', $negocio, true) ? parse_decimal($in['preco_locacao'] ?? null) : null;
+    $d['preco_venda'] = in_array('venda', $negocio, true) ? parse_valor($in['preco_venda'] ?? null) : null;
+    $d['preco_locacao'] = in_array('locacao', $negocio, true) ? parse_valor($in['preco_locacao'] ?? null) : null;
     $d['preco_temporada'] = null; // ele não trabalha com temporada
     if (!$negocio) {
         $erros['negocio'] = 'Marque venda ou locação.';
@@ -395,9 +416,16 @@ function validar_imovel(array $in, ?int $id = null): array
             $erros['preco_' . $n] = 'Informe o valor.';
         }
     }
+    // trava contra erro de digitação ("650" no lugar de "650 mil")
+    if ($d['preco_venda'] !== null && $d['preco_venda'] < 10_000) {
+        $erros['preco_venda'] = 'Valor de venda muito baixo: ' . money($d['preco_venda']) . '. Confira (ex.: 650 mil ou 650.000).';
+    }
+    if ($d['preco_locacao'] !== null && $d['preco_locacao'] < 300) {
+        $erros['preco_locacao'] = 'Valor de locação muito baixo: ' . money($d['preco_locacao']) . '. Confira (ex.: 4.500).';
+    }
     $d['locacao_pacote'] = !empty($in['locacao_pacote']) ? 1 : 0;
-    $d['condominio'] = parse_decimal($in['condominio'] ?? null);
-    $d['iptu'] = parse_decimal($in['iptu'] ?? null);
+    $d['condominio'] = parse_valor($in['condominio'] ?? null);
+    $d['iptu'] = parse_valor($in['iptu'] ?? null);
     $d['iptu_periodo'] = ($in['iptu_periodo'] ?? '') === 'anual' ? 'anual' : 'mensal';
     $d['video_url'] = null;
     $video = trim((string)($in['video_url'] ?? ''));
@@ -432,7 +460,7 @@ function validar_imovel(array $in, ?int $id = null): array
     if (isset($in['itens']) || isset($in['caracteristicas_outros'])) {
         $d['caracteristicas'] = juntar_itens(array_map('strval', (array)($in['itens'] ?? [])), (string)($in['caracteristicas_outros'] ?? ''), itens_do_imovel());
     } else {
-        $d['caracteristicas'] = trim(strip_tags((string)($in['caracteristicas'] ?? ''))) ?: null;
+        $d['caracteristicas'] = limpar_texto((string)($in['caracteristicas'] ?? '')) ?: null;
     }
     $d['destaque_site'] = !empty($in['destaque_site']) ? 1 : 0;
     $d['destaque_portal'] = in_array($in['destaque_portal'] ?? '', ['padrao', 'destaque', 'super_destaque'], true) ? $in['destaque_portal'] : 'padrao';
@@ -457,6 +485,22 @@ function salvar_imovel(array $d, ?int $id = null): int
     $ph = implode(',', array_fill(0, count($cols), '?'));
     q('INSERT INTO imoveis (' . implode(',', $cols) . ") VALUES ($ph)", array_values($d));
     return (int)db()->lastInsertId();
+}
+
+/**
+ * Valor em reais digitado no painel: aceita "650 mil", "1,2 milhão", "R$ 1 milhão e 60 mil",
+ * "650.000", "4.500,00" e o valor formatado que o próprio formulário mostra.
+ */
+function parse_valor(mixed $valor): ?float
+{
+    $s = trim((string)($valor ?? ''));
+    if ($s === '') {
+        return null;
+    }
+    if (preg_match('/mil|mi\b|k\b/iu', $s)) {
+        return valor_por_extenso($s);
+    }
+    return parse_decimal($s);
 }
 
 /** Avisos para o CanalPro (não impedem salvar). */

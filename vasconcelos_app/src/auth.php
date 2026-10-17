@@ -119,6 +119,7 @@ function concluir_login(int $uid): void
     $_SESSION['last_seen'] = time();
     $_SESSION['ua'] = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? '');
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    $_SESSION['sv'] = (int)q('SELECT sessao_versao FROM usuarios WHERE id = ?', [$uid])->fetchColumn();
     q('UPDATE usuarios SET ultimo_login = NOW() WHERE id = ?', [$uid]);
     $GLOBALS['__user'] = null;
     log_atividade('login');
@@ -155,13 +156,34 @@ function current_user(): ?array
         session_regenerate_id(true);
         return null;
     }
-    $user = q('SELECT id, nome, email, papel, creci, whatsapp, totp_ativo FROM usuarios WHERE id = ? AND ativo = 1', [$uid])->fetch();
-    if (!$user) {
+    $user = q('SELECT id, nome, email, papel, creci, whatsapp, totp_ativo, sessao_versao FROM usuarios WHERE id = ? AND ativo = 1', [$uid])->fetch();
+    // senha trocada/redefinida ou 2 etapas mexida em outro lugar: esta sessão deixa de valer
+    if (!$user || (int)$user['sessao_versao'] !== (int)($_SESSION['sv'] ?? 0)) {
         $_SESSION = [];
+        session_regenerate_id(true);
         return null;
     }
     $_SESSION['last_seen'] = $agora;
     return $GLOBALS['__user'] = $user;
+}
+
+/**
+ * Derruba as outras sessões abertas desse usuário (outros celulares e computadores).
+ * Se for a própria pessoa logada, a sessão atual continua valendo.
+ */
+function encerrar_outras_sessoes(int $uid): void
+{
+    q('UPDATE usuarios SET sessao_versao = sessao_versao + 1 WHERE id = ?', [$uid]);
+    if (session_status() === PHP_SESSION_ACTIVE && (int)($_SESSION['uid'] ?? 0) === $uid) {
+        $_SESSION['sv'] = (int)q('SELECT sessao_versao FROM usuarios WHERE id = ?', [$uid])->fetchColumn();
+    }
+    $GLOBALS['__user'] = null;
+}
+
+/** 2 etapas obrigatória para todos (config 'exigir_2fa' => false desliga, só para testes). */
+function exige_2fa(): bool
+{
+    return (bool)config('exigir_2fa', true);
 }
 
 function require_login(): array

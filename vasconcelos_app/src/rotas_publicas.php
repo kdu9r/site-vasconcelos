@@ -55,8 +55,10 @@ function rotear_publico(string $path): void
         case $path === '/whatsapp':
             redirecionar_whatsapp();
             return;
-        case $path === '/feed/canalpro.xml':
-            if (config('modo_teste')) abort(404); // demonstração: nada vai para os portais
+        case (bool)preg_match('~^/feed/canalpro-([a-f0-9]{32})\.xml$~', $path, $m):
+            // endereço secreto: o feed traz endereço completo e coordenadas (ver feed_token)
+            if (config('modo_teste') || !feed_token_valido($m[1])) abort(404); // demonstração: nada vai para os portais
+            header('X-Robots-Tag: noindex, nofollow');
             header('Content-Type: application/xml; charset=utf-8');
             header('Cache-Control: public, max-age=600');
             echo gerar_feed_vrsync();
@@ -66,7 +68,7 @@ function rotear_publico(string $path): void
             return;
         case $path === '/robots.txt':
             header('Content-Type: text/plain; charset=utf-8');
-            echo config('modo_teste') ? "User-agent: *\nDisallow: /\n" : "User-agent: *\nDisallow: /painel\nDisallow: /whatsapp\nSitemap: " . url('/sitemap.xml') . "\n";
+            echo config('modo_teste') ? "User-agent: *\nDisallow: /\n" : "User-agent: *\nDisallow: /painel\nDisallow: /whatsapp\nDisallow: /feed/\nSitemap: " . url('/sitemap.xml') . "\n";
             return;
         default:
             abort(404);

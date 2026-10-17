@@ -1,4 +1,4 @@
-<?php /** @var array $estado @var bool $token_configurado */ ?>
+<?php /** @var array $estado @var bool $token_configurado @var string $feed_url */ ?>
 <?php require __DIR__ . '/config_subnav.php'; ?>
 <h2 class="p-subtitulo">Migração da Code49</h2>
 
@@ -32,4 +32,19 @@
     <input type="hidden" name="acao" value="ligar_portais">
     <button class="p-botao" type="submit">Ligar CanalPro em todos os imóveis no ar</button>
   </form>
+</section>
+
+<section class="p-cartao" id="feed">
+  <h2>Endereço do feed (para o CanalPro)</h2>
+  <p class="p-nota">Cadastre este endereço no CanalPro (Integração, formato VRSync). Ele é secreto: o feed tem o endereço completo e a localização de todos os imóveis, então não divulgue nem cole em grupos.</p>
+  <?php if (config('modo_teste')): ?>
+    <div class="p-aviso p-aviso--aviso">Este é o site de demonstração: o feed fica desligado aqui. Ele passa a funcionar no endereço definitivo.</div>
+  <?php endif; ?>
+  <label class="p-campo"><span>Endereço do feed</span><input value="<?= e($feed_url) ?>" readonly spellcheck="false" data-selecionar></label>
+  <form method="post" action="/painel/importar" data-confirmar="Trocar o endereço? O endereço atual para de funcionar e você vai precisar cadastrar o novo no CanalPro.">
+    <?= csrf_field() ?>
+    <input type="hidden" name="acao" value="novo_feed">
+    <button class="p-botao" type="submit">Gerar endereço novo</button>
+  </form>
+  <p class="p-nota">Use só se o endereço vazar.</p>
 </section>

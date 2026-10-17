@@ -56,10 +56,10 @@ function integracoes_campos(): array
 }
 
 /** Lê uma configuração salva no banco. Nunca derruba o site se a tabela não existir. */
-function config_site(?string $chave = null): mixed
+function config_site(?string $chave = null, bool $recarregar = false): mixed
 {
     static $cache = null;
-    if ($cache === null) {
+    if ($cache === null || $recarregar) {
         try {
             $cache = q('SELECT chave, valor FROM configuracoes')->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
         } catch (Throwable $e) {
@@ -78,6 +78,7 @@ function salvar_config_site(array $valores): void
             q('INSERT INTO configuracoes (chave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)', [$chave, (string)$valor]);
         }
     }
+    config_site(null, true);
 }
 
 /** @return array{0: array, 1: array} */

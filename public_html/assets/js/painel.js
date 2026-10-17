@@ -627,4 +627,14 @@
     });
     atualizar();
   });
+
+  // Formulários com confirmação simples e campos que se selecionam ao clicar (ex.: endereço do feed)
+  qsa('form[data-confirmar]').forEach(function (form) {
+    form.addEventListener('submit', function (ev) {
+      if (!confirm(form.getAttribute('data-confirmar'))) ev.preventDefault();
+    });
+  });
+  qsa('[data-selecionar]').forEach(function (el) {
+    el.addEventListener('focus', function () { el.select(); });
+  });
 })();
